@@ -1,0 +1,10 @@
+﻿{
+  "Id": "TheEscapists2Mod",
+  "DisplayName": "WingMod",
+  "Author": "WingGao",
+  "Version": "1.0.0",
+  "ManagerVersion": "0.21.2",
+  "GameVersion": "1.0.0",
+  "AssemblyName": "TheEscapists2Mod.dll",
+  "EntryMethod": "TheEscapists2Mod.Main.Load"
+}
