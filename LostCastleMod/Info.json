@@ -1,0 +1,10 @@
+﻿{
+  "Id": "LostCastleMod",
+  "DisplayName": "WingMod",
+  "Author": "WingGao",
+  "Version": "1.0.0",
+  "ManagerVersion": "0.22.13",
+  "GameVersion": "1.0.0",
+  "AssemblyName": "LostCastleMod.dll",
+  "EntryMethod": "LostCastleMod.Main.Load"
+}

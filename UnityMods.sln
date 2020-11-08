@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheEscapists2Mod", "TheEsca
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BloodySpellMod", "BloodySpellMod\BloodySpellMod.csproj", "{09834345-C932-44F2-A133-27371C950654}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LostCastleMod", "LostCastleMod\LostCastleMod.csproj", "{FB9088EE-558F-4B9F-8DC5-69124DDD5974}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{09834345-C932-44F2-A133-27371C950654}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{09834345-C932-44F2-A133-27371C950654}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{09834345-C932-44F2-A133-27371C950654}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FB9088EE-558F-4B9F-8DC5-69124DDD5974}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FB9088EE-558F-4B9F-8DC5-69124DDD5974}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FB9088EE-558F-4B9F-8DC5-69124DDD5974}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FB9088EE-558F-4B9F-8DC5-69124DDD5974}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
