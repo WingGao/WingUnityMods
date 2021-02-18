@@ -1,0 +1,10 @@
+﻿{
+	"Name":"AmzHardCoreSaver",		
+	"DisplayName":"真仙存档(Immortal Saver)", 
+	"Desc":"真仙模式添加普通模式的存档读档按钮\nAdd Save/Load menu in Immortal game mod.",
+	"GameVersion":0.95,	
+	"Version":1,			
+	"Author":"WingGao",			
+	"Sort":"99999",		
+	"IncreasedDesc":""	
+}

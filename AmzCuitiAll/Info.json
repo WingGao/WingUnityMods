@@ -1,0 +1,10 @@
+﻿{
+	"Name":"AmzCuitiAll",		
+	"DisplayName":"淬体全部词条", 
+	"Desc":"淬体显示全部词条",
+	"GameVersion":0.95,	
+	"Version":1,			
+	"Author":"WingGao",
+	"ParentModInfo": ["ModLoaderLite,3.3,巨弩级灵压,轻量模组加载库,1997170546"],
+	"IncreasedDesc":""	
+}
