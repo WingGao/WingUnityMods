@@ -11,7 +11,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LostCastleMod", "LostCastle
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AmzHardCoreSaver", "AmzHardCoreSaver\AmzHardCoreSaver.csproj", "{D0F47691-9AAA-4E4A-A8D7-761C6E49E318}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AmzCuitiAll", "AmzCuitiAll\AmzCuitiAll.csproj", "{D0F47691-9AAA-4E4A-A8D7-761C6E49E319}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AmzCuiTiAll", "AmzCuiTiAll\AmzCuiTiAll.csproj", "{D0F47691-9AAA-4E4A-A8D7-761C6E49E319}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

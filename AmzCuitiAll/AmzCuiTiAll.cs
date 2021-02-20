@@ -10,12 +10,17 @@ namespace AmzCuiTiAll
 
     public static class AmzCuiTiAll
     {
-        public static bool Enabled = true;
+        public static bool CuiTiAllEnabled = true;
+
+        public static void OnInit()
+        {
+            // KLog.Dbg("[AmzCuiTiAll] OnInit x");
+        }
         
         public static void OnLoad()
         {
-            KLog.Dbg("AmzCuiTiAll OnLoad");
-            Configuration.AddCheckBox(nameof (AmzCuiTiAll), "Enabled", "激活模组", Enabled);
+            KLog.Dbg("[AmzCuiTiAll] OnLoad x");
+            Configuration.AddCheckBox(nameof (AmzCuiTiAll), "CuiTiAllEnabled", "淬体显示全部词条", CuiTiAllEnabled);
             Configuration.Subscribe(new EventCallback0(AmzCuiTiAll.HandleConfig));
         }
 
@@ -33,7 +38,7 @@ namespace AmzCuiTiAll
 
         private static void HandleConfig()
         {
-            AmzCuiTiAll.Enabled = Configuration.GetCheckBox(nameof (AmzCuiTiAll), "Enabled");
+            AmzCuiTiAll.CuiTiAllEnabled = Configuration.GetCheckBox(nameof (AmzCuiTiAll), "CuiTiAllEnabled");
         }
     }
 }
