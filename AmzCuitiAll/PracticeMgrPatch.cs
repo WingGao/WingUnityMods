@@ -42,6 +42,7 @@ namespace AmzCuiTiAll
             var list = __result;
             // 排重
             var labelMap = new Dictionary<string, Boolean>();
+            labelMap.Add("QuenchingLabel_Lv0_Base", true); //排除
             var sMapBpLabelCacheDefs = AccessTools.StaticFieldRefAccess<Dictionary<string, BPLabelCacheDef>>(
                 typeof(PracticeMgr),
                 "s_mapBPLabelCacheDefs");
