@@ -7,20 +7,21 @@ using XiaWorld;
 
 namespace AmzCuiTiAll
 {
-
     public static class AmzCuiTiAll
     {
         public static bool CuiTiAllEnabled = true;
+        public static bool SouHunEnabled = true;
 
         public static void OnInit()
         {
             // KLog.Dbg("[AmzCuiTiAll] OnInit x");
         }
-        
+
         public static void OnLoad()
         {
             KLog.Dbg("[AmzCuiTiAll] OnLoad x");
-            Configuration.AddCheckBox(nameof (AmzCuiTiAll), "CuiTiAllEnabled", "淬体显示全部词条", CuiTiAllEnabled);
+            Configuration.AddCheckBox(nameof(AmzCuiTiAll), "CuiTiAllEnabled", "淬体显示全部词条", CuiTiAllEnabled);
+            Configuration.AddCheckBox(nameof(AmzCuiTiAll), "SouHunEnabled", "无限制搜魂大法", CuiTiAllEnabled);
             Configuration.Subscribe(new EventCallback0(AmzCuiTiAll.HandleConfig));
         }
 
@@ -38,7 +39,8 @@ namespace AmzCuiTiAll
 
         private static void HandleConfig()
         {
-            AmzCuiTiAll.CuiTiAllEnabled = Configuration.GetCheckBox(nameof (AmzCuiTiAll), "CuiTiAllEnabled");
+            CuiTiAllEnabled = Configuration.GetCheckBox(nameof(AmzCuiTiAll), "CuiTiAllEnabled");
+            SouHunEnabled = Configuration.GetCheckBox(nameof(AmzCuiTiAll), "SouHunEnabled");
         }
     }
 }

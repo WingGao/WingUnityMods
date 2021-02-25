@@ -44,9 +44,6 @@
     <Reference Include="ModLoaderLite, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>..\..\..\Program Files (x86)\Steam\steamapps\workshop\content\955900\1997170546\ModLoaderLite.dll</HintPath>
     </Reference>
-    <Reference Include="Mono.Simd, Version=2.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756">
-      <HintPath>..\..\..\Program Files (x86)\Steam\steamapps\workshop\content\955900\1997170546\Mono.Simd.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
@@ -62,6 +59,7 @@
     <Compile Include="AmzCuiTiAll.cs" />
     <Compile Include="PracticeMgrPatch.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ThingPatch.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Info.json">
