@@ -108,7 +108,7 @@ async function patchMod(cnf) {
 }
 
 async function main() {
-  let selectedMod = ModConfigs[1]
+  let selectedMod = ModConfigs[0]
   logger.info('当前游戏', selectedMod.name)
   currentGameConfig = buildGameConfig(selectedMod)
   await copyMonoMod(currentGameConfig)

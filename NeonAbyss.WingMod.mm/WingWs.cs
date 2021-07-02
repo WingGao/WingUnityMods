@@ -16,7 +16,7 @@ namespace WingGao.Mod
         {
             var wssv = new WebSocketServer ("ws://0.0.0.0:10031");
             wssv.AddWebSocketService<WingWS> ("/wing");
-            wssv.Start ();
+            wssv.Start();
         }
     }
 }
