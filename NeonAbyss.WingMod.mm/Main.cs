@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Reflection;
 using HarmonyLib;
-using WingGao.Mod;
 
 #pragma warning disable CS0626 // orig_ method is marked external and has no attributes on it.
 namespace NEON.UI.MainScreen
@@ -15,17 +14,5 @@ namespace NEON.UI.MainScreen
     {
         // : Player lets us reuse any of its visible members without redefining them.
         // MonoMod creates a copy of the original method, called orig_Added.
-
-        public extern void orig_Select(MainScreenMenuItem item);
-        public new void Select(MainScreenMenuItem item)
-        {
-            WingPatch.StartPatch();
-            orig_Select(item);
-        }
-        void Awake(){
-            WingPatch.StartPatch();
-        }
     }
-    
-
 }

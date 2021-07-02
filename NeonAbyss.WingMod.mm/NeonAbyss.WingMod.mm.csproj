@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{640FCC03-1D2F-48D6-9E04-5C23D0855289}</ProjectGuid>
+    <ProjectGuid>{640FCC03-1D2F-48D6-9E04-5C23D0855290}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Wing.Mod</RootNamespace>
@@ -65,6 +65,9 @@
     <Reference Include="MonoMod, Version=21.6.21.1, Culture=neutral, PublicKeyToken=null">
       <HintPath>..\packages\MonoMod.21.6.21.1\lib\net40\MonoMod.exe</HintPath>
       <Private>True</Private>
+    </Reference>
+    <Reference Include="MonoMod.RuntimeDetour, Version=21.6.21.1, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\MonoMod-21.06.21.01-net40\MonoMod.RuntimeDetour.dll</HintPath>
     </Reference>
     <Reference Include="MonoMod.Utils, Version=21.6.21.1, Culture=neutral, PublicKeyToken=null">
       <HintPath>..\packages\MonoMod.Utils.21.6.21.1\lib\net40\MonoMod.Utils.dll</HintPath>

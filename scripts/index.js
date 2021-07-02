@@ -99,7 +99,7 @@ async function patchMod(cnf) {
     let patchedDll = path.resolve(cnf.targetDir, 'MONOMODDED_' + cnf.targetDll)
     logger.info('完成Patch', patchedDll)
     // 替换
-    fs.copyFileSync(patchedDll, path.resolve(cnf.gameDir, cnf.modTarget))
+    fs.renameSync(patchedDll, path.resolve(cnf.gameDir, cnf.modTarget))
     logger.info('完成替换', cnf.modTarget)
   } catch (error) {
     logger.error(error)

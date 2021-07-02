@@ -1,7 +1,10 @@
 ﻿#pragma warning disable CS0626
 using System.Collections;
 using MonoMod;
+using NEON.Framework;
 using NEON.Game;
+using UnityEngine;
+using UnityEngine.Events;
 
 namespace NEON.UI
 {
@@ -22,12 +25,17 @@ namespace NEON.UI
             orig_ShowFullMap(teleport);
             RefreshRoomOnlyIcon();
             RefreshRoomOnlyIcon(true);
+            
+            // Debug.Log("ShowFullMap");
         }
         [MonoModIgnore]
         public extern void orig_ConstructMinimap(Level lvl);
 
-        public void ConstructMinimap(Level lvl)
+        public new void ConstructMinimap(Level lvl)
         {
+            // 全局入口
+            // WingPatch.StartPatch();
+            
             orig_ConstructMinimap(lvl);
             RefreshRoomOnlyBg();
             RefreshRoomOnlyIcon();
