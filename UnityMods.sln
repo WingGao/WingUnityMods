@@ -13,6 +13,18 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AmzHardCoreSaver", "AmzHard
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AmzCuiTiAll", "AmzCuiTiAll\AmzCuiTiAll.csproj", "{D0F47691-9AAA-4E4A-A8D7-761C6E49E319}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NeonAbyss.WingMod.hx", "NeonAbyss.WingMod.hx\NeonAbyss.WingMod.hx.csproj", "{0B864740-AE79-4181-A6B9-5473F1228CDE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestGameMain", "TestGameMain\TestGameMain.csproj", "{43EE407B-3D17-49BF-8E18-AF9B2EDC8F49}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestGameMain.lib.Mod.mm", "TestGameMain.lib.Mod.mm\TestGameMain.lib.Mod.mm.csproj", "{31586695-6174-420C-AC2D-D825D2494209}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestGameMain.lib", "TestGameMain.lib\TestGameMain.lib.csproj", "{B7A0FB1B-506E-4F11-A4CB-4352BBF3CFF9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NeonAbyss.WingMod.mm", "NeonAbyss.WingMod.mm\NeonAbyss.WingMod.mm.csproj", "{640FCC03-1D2F-48D6-9E04-5C23D0855289}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnityDemo1.WingMod.mm", "UnityDemo1.WingMod.mm\UnityDemo1.WingMod.mm.csproj", "{640FCC03-1D2F-48D6-9E04-5C23D0855289}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +51,26 @@ Global
 		{D0F47691-9AAA-4E4A-A8D7-761C6E49E319}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D0F47691-9AAA-4E4A-A8D7-761C6E49E319}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D0F47691-9AAA-4E4A-A8D7-761C6E49E319}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0B864740-AE79-4181-A6B9-5473F1228CDE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B864740-AE79-4181-A6B9-5473F1228CDE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0B864740-AE79-4181-A6B9-5473F1228CDE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0B864740-AE79-4181-A6B9-5473F1228CDE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{43EE407B-3D17-49BF-8E18-AF9B2EDC8F49}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{43EE407B-3D17-49BF-8E18-AF9B2EDC8F49}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{43EE407B-3D17-49BF-8E18-AF9B2EDC8F49}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{43EE407B-3D17-49BF-8E18-AF9B2EDC8F49}.Release|Any CPU.Build.0 = Release|Any CPU
+		{31586695-6174-420C-AC2D-D825D2494209}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{31586695-6174-420C-AC2D-D825D2494209}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{31586695-6174-420C-AC2D-D825D2494209}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{31586695-6174-420C-AC2D-D825D2494209}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B7A0FB1B-506E-4F11-A4CB-4352BBF3CFF9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B7A0FB1B-506E-4F11-A4CB-4352BBF3CFF9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B7A0FB1B-506E-4F11-A4CB-4352BBF3CFF9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B7A0FB1B-506E-4F11-A4CB-4352BBF3CFF9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{640FCC03-1D2F-48D6-9E04-5C23D0855289}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{640FCC03-1D2F-48D6-9E04-5C23D0855289}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{640FCC03-1D2F-48D6-9E04-5C23D0855289}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{640FCC03-1D2F-48D6-9E04-5C23D0855289}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
