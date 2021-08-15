@@ -10,6 +10,7 @@ const logger = log4js.getLogger();
 logger.level = 'debug';
 
 const SteamDirs = [
+  'e:\\Program Files (x86)\\Steam\\steamapps\\common',
   'd:\\Program Files (x86)\\Steam\\steamapps\\common',
   'D:\\Projs\\UnityDemo1\\Temp',
 ]

@@ -1,0 +1,5 @@
+{
+  "Id": "WingMod",
+  "Version": "1.0.0",
+  "EntryMethod": "WingMod.Main.Load"
+}

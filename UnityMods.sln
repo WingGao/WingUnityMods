@@ -25,6 +25,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NeonAbyss.WingMod.mm", "Neo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnityDemo1.WingMod.mm", "UnityDemo1.WingMod.mm\UnityDemo1.WingMod.mm.csproj", "{640FCC03-1D2F-48D6-9E04-5C23D0855289}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NineProvincesCaravan", "NineProvincesCaravan\NineProvincesCaravan.csproj", "{449CD604-B128-46E1-AB9D-26F43AB3F729}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -73,6 +75,10 @@ Global
 		{640FCC03-1D2F-48D6-9E04-5C23D0855289}.Release|Any CPU.Build.0 = Release|Any CPU
 		{640FCC03-1D2F-48D6-9E04-5C23D0855290}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{640FCC03-1D2F-48D6-9E04-5C23D0855290}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{449CD604-B128-46E1-AB9D-26F43AB3F729}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{449CD604-B128-46E1-AB9D-26F43AB3F729}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{449CD604-B128-46E1-AB9D-26F43AB3F729}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{449CD604-B128-46E1-AB9D-26F43AB3F729}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
