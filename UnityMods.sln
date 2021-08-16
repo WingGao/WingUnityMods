@@ -27,6 +27,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnityDemo1.WingMod.mm", "Un
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NineProvincesCaravan", "NineProvincesCaravan\NineProvincesCaravan.csproj", "{449CD604-B128-46E1-AB9D-26F43AB3F729}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NineProvincesCaravan.mm", "NineProvincesCaravan.mm\NineProvincesCaravan.mm.csproj", "{2D5D115B-6908-483D-8034-C44B67498C41}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -79,6 +81,10 @@ Global
 		{449CD604-B128-46E1-AB9D-26F43AB3F729}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{449CD604-B128-46E1-AB9D-26F43AB3F729}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{449CD604-B128-46E1-AB9D-26F43AB3F729}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2D5D115B-6908-483D-8034-C44B67498C41}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2D5D115B-6908-483D-8034-C44B67498C41}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2D5D115B-6908-483D-8034-C44B67498C41}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2D5D115B-6908-483D-8034-C44B67498C41}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
