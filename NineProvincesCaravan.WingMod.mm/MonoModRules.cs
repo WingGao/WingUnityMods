@@ -15,7 +15,7 @@ namespace MonoMod
 
     static class MonoModRules
     {
-        public static void PatchDlgSettings(ILContext context, CustomAttribute attrib)
+        public static void PatchDlgSettings(ILContext context)
         {
             ILCursor cursor = new ILCursor(context);
 

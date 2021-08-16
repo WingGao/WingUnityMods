@@ -16,6 +16,12 @@ const SteamDirs = [
 ]
 const ModConfigs = [
   {
+    name: '九州商旅',
+    gameDir: 'Nine Provinces Caravan',
+    modTarget: 'Nine_Data\\Managed\\Assembly-CSharp.dll',
+    modProjectDir: 'NineProvincesCaravan.WingMod.mm'
+  },
+  {
     name: '霓虹深渊',
     gameDir: 'Neon Abyss',
     modTarget: 'NeonAbyss_Data\\Managed\\Assembly-CSharp.dll',
@@ -95,7 +101,7 @@ async function patchMod(cnf) {
   try {
     let p = execa('MonoMod.exe', [cnf.modTarget], { encoding: 'binary', cwd: cnf.gameDir });
     p.stdout.pipe(process.stdout);
-    p.stderr.pipe(process.stderr);
+    // p.stderr.pipe(process.stderr);
     await p
     let patchedDll = path.resolve(cnf.targetDir, 'MONOMODDED_' + cnf.targetDll)
     logger.info('完成Patch', patchedDll)
