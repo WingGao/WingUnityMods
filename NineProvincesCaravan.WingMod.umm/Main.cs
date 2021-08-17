@@ -56,6 +56,7 @@ namespace WingMod
             }
         }
 
+        // 测试IL
         [HarmonyPatch(typeof(DlgSettings), "UpdateFps")]
         public static class DlgSettings_UpdateFps_Patch
         {
@@ -63,8 +64,13 @@ namespace WingMod
             {
                 // do something
                 ILCursor c = new ILCursor(instructions);
-                c.GotoNext(MoveType.Before,
-                    inst=>inst.Instruction.opcode == OpCodes.Ldfld && inst.Instruction.)
+                c.Instrs.ForEach(v =>
+                {
+                    var inst = v.Instruction;
+                    WingLog.Log("> {0}",inst.operand?.GetType().FullName);
+                    WingLog.Log(v.Instruction.ToString());
+                    // inst.Is()
+                });
                 return c.Context.AsEnumerable();
             }
         }

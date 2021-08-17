@@ -38,10 +38,12 @@
         <Reference Include="System.Xml" />
     </ItemGroup>
     <ItemGroup>
+        <Compile Include="Extensions.UtilsIL.cs" />
         <Compile Include="ILContext.cs" />
         <Compile Include="ILCursor.cs" />
         <Compile Include="ILInstruction.cs" />
         <Compile Include="ILLabel.cs" />
+        <Compile Include="ILPatternMatchingExt.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -1,3 +1,6 @@
 [submodule "MonoMod"]
 	path = MonoMod
 	url = git@github.com:MonoMod/MonoMod.git
+[submodule "Harmony"]
+	path = Harmony
+	url = git@github.com:pardeike/Harmony.git

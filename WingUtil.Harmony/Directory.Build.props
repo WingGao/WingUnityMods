@@ -1,7 +1,7 @@
 ﻿<Project>
     <ItemGroup>
         <Reference Include="0Harmony, Version=2.0.2.0, Culture=neutral, PublicKeyToken=null">
-            <HintPath>..\..\..\Program Files (x86)\Steam\steamapps\common\Nine Provinces Caravan\Nine_Data\Managed\0Harmony.dll</HintPath>
+            <HintPath>..\NineProvincesCaravan.WingMod.umm\_game\0Harmony.dll</HintPath>
         </Reference>
     </ItemGroup>
 </Project>
