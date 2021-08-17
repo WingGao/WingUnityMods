@@ -4,11 +4,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("NineProvincesCaravan.WingMod.umm.WingMod.mm")]
+[assembly: AssemblyTitle("WingUtil")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("NineProvincesCaravan.WingMod.umm.WingMod.mm")]
+[assembly: AssemblyProduct("WingUtil")]
 [assembly: AssemblyCopyright("Copyright ©  2021")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -19,7 +19,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("2D5D115B-6908-483D-8034-C44B67498C41")]
+[assembly: Guid("97D65711-6616-472D-9AC5-590E288B1D97")]
 
 // Version information for an assembly consists of the following four values:
 //

@@ -1,0 +1,19 @@
+﻿<Project>
+    <ItemGroup>
+        <Reference Include="0Harmony, Version=2.0.2.0, Culture=neutral, PublicKeyToken=null">
+            <HintPath>..\..\..\Program Files (x86)\Steam\steamapps\common\Nine Provinces Caravan\Nine_Data\Managed\0Harmony.dll</HintPath>
+        </Reference>
+        <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+            <HintPath>..\..\..\Program Files (x86)\Steam\steamapps\common\Nine Provinces Caravan\Nine_Data\Managed\Assembly-CSharp.dll</HintPath>
+        </Reference>
+        <Reference Include="Assembly-CSharp-firstpass, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+            <HintPath>..\..\..\Program Files (x86)\Steam\steamapps\common\Nine Provinces Caravan\Nine_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+            <HintPath>..\..\..\Program Files (x86)\Steam\steamapps\common\Nine Provinces Caravan\Nine_Data\Managed\UnityEngine.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+            <HintPath>..\..\..\Program Files (x86)\Steam\steamapps\common\Nine Provinces Caravan\Nine_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+        </Reference>
+    </ItemGroup>
+</Project>

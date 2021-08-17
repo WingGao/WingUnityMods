@@ -15,12 +15,11 @@ namespace MonoMod
 
     static class MonoModRules
     {
-        public static void PatchDlgSettings(ILContext context)
+        public static void PatchDlgSettings(MethodDefinition method, CustomAttribute attrib)
         {
-            ILCursor cursor = new ILCursor(context);
-
+            ILCursor cursor = new ILCursor(new ILContext(method));
             // FieldReference f_Entity_Collidable = MonoModRule.Modder.Module.GetType("Monocle.Entity").FindField("Collidable");
-            MethodReference m_Concat = MonoModRule.Modder.Module.GetType("System.String").FindMethod("System.String Concat(System.String,System.String)");
+            MethodDefinition m_Concat = MonoModRule.Modder.Module.GetType("System.String").FindMethod("System.String Concat(System.String,System.String)");
 
             // MethodDefinition m_ModCardTexture = context.Method.DeclaringType.FindMethod("string DlgSettings/VersionData::get_Ver()");
             cursor.GotoNext(MoveType.AfterLabel,

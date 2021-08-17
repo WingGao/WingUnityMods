@@ -1,7 +1,9 @@
 ﻿using System.Reflection;
+using Framework;
 using HarmonyLib;
 using UnityEngine;
 using UnityModManagerNet;
+using WingUtil;
 
 namespace WingMod
 {
@@ -11,14 +13,14 @@ namespace WingMod
         
         static void Load(UnityModManager.ModEntry modEntry)
         {
-            
+            Harmony.DEBUG = true;
             var harmony = new Harmony(modEntry.Info.Id);
             harmony.PatchAll(Assembly.GetExecutingAssembly());
 
             mod = modEntry;
             modEntry.OnToggle = OnToggle;
             
-            mod.Logger.Log("hello wing load");
+            WingLog.Log("hello wing load");
         }
 
         static bool OnToggle(UnityModManager.ModEntry modEntry, bool value /* active or inactive */)
@@ -38,7 +40,16 @@ namespace WingMod
 
         static void Run()
         {
-            mod.Logger.Log("hello wing run");
+            WingLog.Log("hello wing run");
+        }
+        
+        [HarmonyPatch(typeof(DlgSettings), "OnUpdate")]
+        static class DlgSettings_Patch
+        {
+            static void Postfix(DlgSettings __instance,ref UICLabel ___lbVersion)
+            {
+                ___lbVersion.text = "V_Wing";
+            }
         }
     }
 }
