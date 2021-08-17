@@ -1,16 +1,20 @@
-﻿using System.Reflection;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Reflection.Emit;
 using Framework;
 using HarmonyLib;
 using UnityEngine;
 using UnityModManagerNet;
 using WingUtil;
+using WingUtil.Harmony;
 
 namespace WingMod
 {
     static class Main
     {
         public static UnityModManager.ModEntry mod;
-        
+
         static void Load(UnityModManager.ModEntry modEntry)
         {
             Harmony.DEBUG = true;
@@ -19,7 +23,7 @@ namespace WingMod
 
             mod = modEntry;
             modEntry.OnToggle = OnToggle;
-            
+
             WingLog.Log("hello wing load");
         }
 
@@ -42,13 +46,26 @@ namespace WingMod
         {
             WingLog.Log("hello wing run");
         }
-        
+
         [HarmonyPatch(typeof(DlgSettings), "OnUpdate")]
         static class DlgSettings_Patch
         {
-            static void Postfix(DlgSettings __instance,ref UICLabel ___lbVersion)
+            static void Postfix(DlgSettings __instance, ref UICLabel ___lbVersion)
             {
                 ___lbVersion.text = "V_Wing";
+            }
+        }
+
+        [HarmonyPatch(typeof(DlgSettings), "UpdateFps")]
+        public static class DlgSettings_UpdateFps_Patch
+        {
+            static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+            {
+                // do something
+                ILCursor c = new ILCursor(instructions);
+                c.GotoNext(MoveType.Before,
+                    inst=>inst.Instruction.opcode == OpCodes.Ldfld && inst.Instruction.)
+                return c.Context.AsEnumerable();
             }
         }
     }
