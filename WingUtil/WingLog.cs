@@ -9,7 +9,8 @@ namespace WingUtil
         {
             // File.AppendAllText("D:\\wing_mod.log", msg + "\n");
             var t = DateTime.Now.ToLongTimeString();
-            File.AppendAllText("D:\\wing_mod.log", String.Format("[" + t + "] " + format + "\n", args));
+            var full = String.Format("[" + t + "] " + format + "\n", args);
+            File.AppendAllText("D:\\wing_mod.log", full);
         }
     }
 }

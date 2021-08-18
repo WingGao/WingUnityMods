@@ -39,6 +39,7 @@
     </ItemGroup>
     <ItemGroup>
         <Compile Include="Extensions.UtilsIL.cs" />
+        <Compile Include="FileLogF.cs" />
         <Compile Include="ILContext.cs" />
         <Compile Include="ILCursor.cs" />
         <Compile Include="ILInstruction.cs" />

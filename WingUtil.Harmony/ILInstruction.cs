@@ -7,5 +7,10 @@ namespace WingUtil.Harmony
         public CodeInstruction Instruction;
         public ILInstruction Next;
         public ILInstruction Previous;
+
+        public override string ToString()
+        {
+            return "ILInstruction => " + Instruction.ToString();
+        }
     }
 }

@@ -33,11 +33,34 @@ namespace WingUtil.Harmony
             return Instructions.IndexOf(instr);
         }
 
+        public ILInstruction Insert(int idx, CodeInstruction ci)
+        {
+            var inst = new ILInstruction();
+            inst.Instruction = ci;
+            //TODO 边界检查
+            var prev = Instructions[idx - 1];
+            var next = Instructions[idx];
+            if (prev != null)
+            {
+                prev.Next = inst;
+                inst.Previous = prev;
+            }
+
+            if (next != null)
+            {
+                next.Previous = inst;
+                inst.Next = next;
+            }
+
+            Instructions.Insert(idx, inst);
+            return inst;
+        }
+
         public IEnumerable<CodeInstruction> AsEnumerable()
         {
             return Instructions.Select(x => x.Instruction);
         }
-        
+
         /// <summary>
         /// Obtain all labels pointing at the given instruction.
         /// </summary>

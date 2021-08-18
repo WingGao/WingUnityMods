@@ -6,6 +6,7 @@ using System.Text;
 using HarmonyLib;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+using System.Reflection.Emit;
 
 // Certain paramaters are self-explanatory (f.e. predicates in Goto*), while others are not (f.e. cursors in Find*).
 #pragma warning disable CS1573 // Parameter has no matching param tag in the XML comment (but other parameters do)
@@ -73,7 +74,8 @@ namespace WingUtil.Harmony
         /// <summary>
         /// The instruction immediately following the cursor position or null if the cursor is at the end of the instruction list.
         /// </summary>
-        public ILInstruction Next {
+        public ILInstruction Next
+        {
             get => _next;
             set => Goto(value);
         }
@@ -81,10 +83,12 @@ namespace WingUtil.Harmony
         /// <summary>
         /// The instruction immediately preceding the cursor position or null if the cursor is at the start of the instruction list.
         /// </summary>
-        public ILInstruction Prev {
+        public ILInstruction Prev
+        {
             get => Next == null ? Instrs[Instrs.Count - 1] : Next.Previous;
             set => Goto(value, MoveType.After);
         }
+
         //
         // /// <summary>
         // /// The instruction immediately preceding the cursor position or null if the cursor is at the start of the instruction list.
@@ -100,11 +104,10 @@ namespace WingUtil.Harmony
         /// </summary>
         public int Index
         {
-            // get => Context.IndexOf(Next);
-            get;
-            // set => Goto(value);
-            set;
+            get => Context.IndexOf(Next);
+            set => Goto(value);
         }
+
         //
         /// <summary>
         /// Indicates whether the position of a MMILCursor is the result of a search function and 
@@ -112,12 +115,14 @@ namespace WingUtil.Harmony
         /// 
         /// See <see cref="Cil.SearchTarget"/>
         /// </summary>
-        public SearchTarget SearchTarget {
+        public SearchTarget SearchTarget
+        {
             get => _searchTarget;
-            set {
+            set
+            {
                 if (value == SearchTarget.Next && Next == null || value == SearchTarget.Prev && Prev == null)
                     value = SearchTarget.None;
-        
+
                 _searchTarget = value;
             }
         }
@@ -126,6 +131,7 @@ namespace WingUtil.Harmony
         /// Enumerates all labels which point to the current instruction (<c>label.Target == Next</c>)
         /// </summary>
         public IEnumerable<ILLabel> IncomingLabels => Context.GetIncomingLabels(Next);
+
         //
         // // Context convenience accessors
         // /// <summary>
@@ -151,6 +157,7 @@ namespace WingUtil.Harmony
             Context = new ILContext(cis);
             Index = 0;
         }
+
         //
         // public ILCursor(ILCursor c) {
         //     Context = c.Context;
@@ -203,23 +210,25 @@ namespace WingUtil.Harmony
         /// <param name="moveType">Where to move in relation to the target instruction and incoming labels (branches)</param>
         /// <param name="setTarget">Whether to set the `SearchTarget` and skip the target instruction with the next search function</param>
         /// <returns>this</returns>
-        public ILCursor Goto(ILInstruction insn, MoveType moveType = MoveType.Before, bool setTarget = false) {
+        public ILCursor Goto(ILInstruction insn, MoveType moveType = MoveType.Before, bool setTarget = false)
+        {
             if (moveType == MoveType.After)
                 // Moving past the end of the method shouldn't move any further, nor wrap around.
                 _next = insn?.Next;
             else
                 _next = insn;
-        
+
             if (setTarget)
                 _searchTarget = moveType == MoveType.After ? SearchTarget.Prev : SearchTarget.Next;
             else
                 _searchTarget = SearchTarget.None;
-            
+
             if (moveType == MoveType.AfterLabel)
                 MoveAfterLabels();
             else
                 MoveBeforeLabels();
-        
+
+            FileLogF.Log("CurrentIndex={0} @ {1}", Index, _next.Instruction.ToString());
             return this;
         }
 
@@ -227,30 +236,35 @@ namespace WingUtil.Harmony
         /// Move the cursor after incoming labels (branches). If an instruction is emitted, all labels which currently point to Next, will point to the newly emitted instruction.
         /// </summary>
         /// <returns>this</returns>
-        public ILCursor MoveAfterLabels() {
+        public ILCursor MoveAfterLabels()
+        {
             _afterLabels = IncomingLabels.ToArray();
             return this;
         }
-        
+
         /// <summary>
         /// Move the cursor before incoming labels (branches). This is the default behaviour. Emitted instructions will not cause labels to change targets.
         /// </summary>
         /// <returns>this</returns>
-        public ILCursor MoveBeforeLabels() {
+        public ILCursor MoveBeforeLabels()
+        {
             _afterLabels = null;
             return this;
         }
+
         //
         /// <summary>
         /// Move the cursor to a target index. Supports negative indexing. See <see cref="Goto(Instruction, MoveType, bool)"/>
         /// </summary>
         /// <returns>this</returns>
-        public ILCursor Goto(int index, MoveType moveType = MoveType.Before, bool setTarget = false) {
+        public ILCursor Goto(int index, MoveType moveType = MoveType.Before, bool setTarget = false)
+        {
             if (index < 0)
                 index += Instrs.Count;
-        
+
             return Goto(index == Instrs.Count ? null : Instrs[index], moveType, setTarget);
         }
+
         //
         // /// <summary>
         // /// Overload for <c>Goto(label.Target)</c>. <paramref name="moveType"/> defaults to MoveType.AfterLabel
@@ -298,6 +312,7 @@ namespace WingUtil.Harmony
 
             return false;
         }
+
         //
         // /// <summary>
         // /// Search backward and moves the cursor to the next sequence of instructions matching the corresponding predicates. See also <seealso cref="TryGotoPrev(MoveType, Func{Instruction, bool}[])"/>
@@ -337,8 +352,9 @@ namespace WingUtil.Harmony
         // }
         //
         // // manual overloads for params + default args
-        // public ILCursor GotoNext(params Func<Instruction, bool>[] predicates) => GotoNext(MoveType.Before, predicates);
-        // public bool TryGotoNext(params Func<Instruction, bool>[] predicates) => TryGotoNext(MoveType.Before, predicates);
+        public ILCursor GotoNext(params Func<ILInstruction, bool>[] predicates) => GotoNext(MoveType.Before, predicates);
+
+        public bool TryGotoNext(params Func<ILInstruction, bool>[] predicates) => TryGotoNext(MoveType.Before, predicates);
         // public ILCursor GotoPrev(params Func<Instruction, bool>[] predicates) => GotoPrev(MoveType.Before, predicates);
         // public bool TryGotoPrev(params Func<Instruction, bool>[] predicates) => TryGotoPrev(MoveType.Before, predicates);
         //
@@ -439,12 +455,15 @@ namespace WingUtil.Harmony
         // /// </summary>
         // /// <returns>A new label with no target</returns>
         // public ILLabel DefineLabel() => Context.DefineLabel();
-        //
-        // private ILCursor _Insert(Instruction instr) {
-        //     Instrs.Insert(Index, instr);
-        //     _Retarget(instr, MoveType.After);
-        //     return this;
-        // }
+
+        private ILCursor _Insert(CodeInstruction ci, out ILInstruction instr)
+        {
+            FileLogF.Log("_Insert {0} @ {1}", Index, ci.ToString());
+            instr = Context.Insert(Index, ci);
+            _Retarget(instr, MoveType.After);
+            return this;
+        }
+
         //
         // /// <summary>
         // /// Remove the Next instruction
@@ -467,24 +486,23 @@ namespace WingUtil.Harmony
         //     return this;
         // }
         //
-        // /// <summary>
-        // /// Move the cursor and all labels the cursor is positioned after to a target instruction
-        // /// </summary>
-        // private void _Retarget(Instruction next, MoveType moveType) {
-        //     if (_afterLabels != null)
-        //         foreach (ILLabel label in _afterLabels)
-        //             label.Target = next;
-        //     Goto(next, moveType);
-        // }
-        //
-        // /// <summary>
-        // /// Emit a new instruction at this cursor's current position.
-        // /// </summary>
-        // /// <param name="opcode">The instruction opcode.</param>
-        // /// <param name="parameter">The instruction operand.</param>
-        // /// <returns>this</returns>
-        // public ILCursor Emit(OpCode opcode, ParameterDefinition parameter)
-        //     => _Insert(IL.Create(opcode, parameter));
+        /// <summary>
+        /// Move the cursor and all labels the cursor is positioned after to a target instruction
+        /// </summary>
+        private void _Retarget(ILInstruction next, MoveType moveType)
+        {
+            if (_afterLabels != null)
+                foreach (ILLabel label in _afterLabels)
+                    label.Target = next;
+            Goto(next, moveType);
+        }
+
+        public ILCursor Emit(OpCode opcode, object operand = null)
+        {
+            var ci = new CodeInstruction(opcode, operand);
+            _Insert(ci, out _);
+            return this;
+        }
         // /// <summary>
         // /// Emit a new instruction at this cursor's current position.
         // /// </summary>
