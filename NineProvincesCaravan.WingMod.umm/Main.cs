@@ -111,13 +111,73 @@ namespace WingMod
                     c.Index += 4;
                     var hotLabel = gen.DefineLabel();
                     var hotLabelInstr = c.Context.Instructions[c.Index + 6];
-                    FileLogF.Log("hotLabel {0}",hotLabelInstr);
+                    FileLogF.Log("hotLabel {0}", hotLabelInstr);
                     hotLabelInstr.Instruction.WithLabels(hotLabel);
                     c.Next.Instruction.opcode = OpCodes.Br;
                     c.Next.Instruction.operand = hotLabel;
                 }
 
                 return c.Context.AsEnumerable();
+            }
+        }
+
+        // 跳过小游戏
+        [HarmonyPatch(typeof(LittleGameMgr), "GameStart")]
+        public static class LittleGameMgr_GameStart_Patch
+        {
+            static bool Prefix(GameType type, float diff, HandleGameResult handle)
+            {
+                if (handle == null) return true;
+                DlgWaitLoading.Show("跳过小游戏...", (System.Action)(() =>
+                {
+                    switch (type)
+                    {
+                        case GameType.Talks:
+                            handle(true, 1, 100);
+                            break;
+                        case GameType.ClickStar:
+                            // 获得背包上线~50
+                            handle(true, 1, 5 * 100, null);
+                            break;
+                        default:
+                            handle(true, 1);
+                            break;
+                    }
+                }), 0.3f);
+                return false;
+            }
+        }
+
+        // 好友不减
+        //public float PlusFriend(string npckey, float value, string npc2key = null, bool tip = true, bool plus = false)
+        [HarmonyPatch(typeof(NpcMgr), "PlusFriend",
+            new Type[] { typeof(String), typeof(float), typeof(string), typeof(bool), typeof(bool) })]
+        public static class NpcMgr_PlusFriend_Patch
+        {
+            static void Prefix(ref float value)
+            {
+                if (value > 0) value = 30;
+                else value = -1;
+            }
+        }
+
+        // 疲劳降低10倍
+        [HarmonyPatch(typeof(RoleMapCls), "PlusTired")]
+        public static class RoleMapCls_PlusTired
+        {
+            static void Prefix(ref float v)
+            {
+                if (v > 0) v /= 10;
+                else v *= 2;
+            }
+        }
+        // 必逃跑
+        [HarmonyPatch(typeof(DlgFight), "GetRunPre")]
+        public static class DlgFight_GetRunPre
+        {
+            static void Postfix(ref float __result)
+            {
+                __result = 100f;
             }
         }
 
