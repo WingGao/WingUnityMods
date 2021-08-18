@@ -55,7 +55,7 @@ namespace WingMod
         {
             static void Postfix(DlgSettings __instance, ref UICLabel ___lbVersion)
             {
-                ___lbVersion.text = "V_Wing";
+                ___lbVersion.text = DlgSettings.Version.Ver + " patch by Wing";
             }
         }
 
@@ -128,7 +128,7 @@ namespace WingMod
             static bool Prefix(GameType type, float diff, HandleGameResult handle)
             {
                 if (handle == null) return true;
-                DlgWaitLoading.Show("跳过小游戏...", (System.Action)(() =>
+                DlgWaitLoading.Show("跳过小游戏...", (System.Action) (() =>
                 {
                     switch (type)
                     {
@@ -151,7 +151,7 @@ namespace WingMod
         // 好友不减
         //public float PlusFriend(string npckey, float value, string npc2key = null, bool tip = true, bool plus = false)
         [HarmonyPatch(typeof(NpcMgr), "PlusFriend",
-            new Type[] { typeof(String), typeof(float), typeof(string), typeof(bool), typeof(bool) })]
+            new Type[] {typeof(String), typeof(float), typeof(string), typeof(bool), typeof(bool)})]
         public static class NpcMgr_PlusFriend_Patch
         {
             static void Prefix(ref float value)
@@ -171,6 +171,7 @@ namespace WingMod
                 else v *= 2;
             }
         }
+
         // 必逃跑
         [HarmonyPatch(typeof(DlgFight), "GetRunPre")]
         public static class DlgFight_GetRunPre
@@ -178,6 +179,16 @@ namespace WingMod
             static void Postfix(ref float __result)
             {
                 __result = 100f;
+            }
+        }
+        
+        // 制造不消失
+        [HarmonyPatch(typeof(global::FurmulaMgr.FurmulaCls), "UpdatePrice")]
+        public static class FurmulaMgr
+        {
+            static void Prefix(global::FurmulaMgr.FurmulaCls __instance)
+            {
+                __instance.count = Math.Max(__instance.count, 3);
             }
         }
 

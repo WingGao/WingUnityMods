@@ -5,7 +5,6 @@ const _ = require('lodash');
 const cpy = require('cpy');
 const execa = require('execa');
 const iconv = require('iconv-lite');
-const open = require('open');
 
 const logger = log4js.getLogger();
 logger.level = 'debug';
