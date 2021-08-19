@@ -116,7 +116,7 @@ async function copyWingMod_MM(cnf) {
 async function copyWingMod_UMM(cnf) {
   let debugDir = cnf.modProjectOutDir
   logger.info('[copyWingMod_UMM] Debug目录', debugDir)
-  let modFiles = ['Info.json', 'WingMod.dll', 'WingUtil.dll', 'WingUtil.Harmony.dll']
+  let modFiles = ['Info.json', 'WingMod.dll', 'WingUtil.dll', 'WingUtil.Harmony.dll','ReadMe.*']
   let targetDir = path.resolve(cnf.gameDir, cnf.ummTargetDir)
   if (cnf.ummCreateDir) targetDir = path.resolve(targetDir, 'WingMod')
   if (!fs.existsSync(targetDir)) fs.mkdirSync(targetDir)

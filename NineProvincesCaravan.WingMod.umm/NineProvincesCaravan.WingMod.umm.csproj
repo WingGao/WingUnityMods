@@ -37,6 +37,9 @@
         <Reference Include="System.Core" />
         <Reference Include="System.Data" />
         <Reference Include="System.Xml" />
+        <Reference Include="UnityEngine.IMGUIModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+          <HintPath>_game\UnityEngine.IMGUIModule.dll</HintPath>
+        </Reference>
 
     </ItemGroup>
     <ItemGroup>
@@ -46,6 +49,9 @@
     <ItemGroup>
       <Content Include="Info.json">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
+      <Content Include="ReadMe.txt">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </Content>
     </ItemGroup>
     <ItemGroup>

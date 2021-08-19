@@ -464,7 +464,7 @@ namespace WingUtil.Harmony
             return this;
         }
 
-        //
+        
         // /// <summary>
         // /// Remove the Next instruction
         // /// </summary>
@@ -474,17 +474,17 @@ namespace WingUtil.Harmony
         //     Instrs.RemoveAt(index);
         //     return this;
         // }
-        //
-        // /// <summary>
-        // /// Remove several instructions
-        // /// </summary>
-        // public ILCursor RemoveRange(int num) {
-        //     int index = Index;
-        //     _Retarget(Instrs[index+num], MoveType.Before);
-        //     while (num-- > 0) // TODO: currently requires O(n) removals, shifting the backing array each time
-        //         Instrs.RemoveAt(index);
-        //     return this;
-        // }
+        
+        /// <summary>
+        /// Remove several instructions
+        /// </summary>
+        public ILCursor RemoveRange(int num) {
+            int index = Index;
+            _Retarget(Instrs[index+num], MoveType.Before);
+            while (num-- > 0) // TODO: currently requires O(n) removals, shifting the backing array each time
+                Instrs.RemoveAt(index);
+            return this;
+        }
         //
         /// <summary>
         /// Move the cursor and all labels the cursor is positioned after to a target instruction
