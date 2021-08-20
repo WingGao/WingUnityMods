@@ -19,17 +19,17 @@ namespace WingUtil.Harmony
     public enum MoveType
     {
         /// <summary>
-        ///  Move the cursor before the first instruction in the match
+        ///  Next就是自己
         /// </summary>
         Before,
 
         /// <summary>
-        /// Equivalent to Before with `cursor.MoveAfterLabels()` causing emitted instructions to become the target of incoming labels
+        /// Next就是自己的下一个
         /// </summary>
         AfterLabel,
 
         /// <summary>
-        ///  Move the cursor after the last instruction in the match
+        ///  Next就是自己的下一个
         /// </summary>
         After
     }

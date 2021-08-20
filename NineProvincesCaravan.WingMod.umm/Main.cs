@@ -11,12 +11,14 @@ using UnityEngine;
 using UnityModManagerNet;
 using WingUtil;
 using WingUtil.Harmony;
+using Object = UnityEngine.Object;
 
 namespace WingMod
 {
     static class Main
     {
         public static UnityModManager.ModEntry mod;
+        private static bool IsKeyShiftHeld = false;
 
         static void Load(UnityModManager.ModEntry modEntry)
         {
@@ -51,6 +53,16 @@ namespace WingMod
         static void Run()
         {
             WingLog.Log("hello wing run");
+        }
+
+        [HarmonyPatch(typeof(GameMgr), "Update")]
+        public static class GameMgr_Update
+        {
+            static void Prefix()
+            {
+                IsKeyShiftHeld = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+                // WingLog.Log($"IsKeyShiftDown={IsKeyShiftDown}");
+            }
         }
 
         [HarmonyPatch(typeof(DlgSettings), "OnUpdate")]
@@ -151,7 +163,7 @@ namespace WingMod
             static bool Prefix(GameType type, float diff, HandleGameResult handle)
             {
                 if (handle == null) return true;
-                DlgWaitLoading.Show("跳过小游戏...", (System.Action)(() =>
+                DlgWaitLoading.Show("跳过小游戏...", (System.Action) (() =>
                 {
                     switch (type)
                     {
@@ -174,7 +186,7 @@ namespace WingMod
         // 好友不减
         //public float PlusFriend(string npckey, float value, string npc2key = null, bool tip = true, bool plus = false)
         [HarmonyPatch(typeof(NpcMgr), "PlusFriend",
-            new Type[] { typeof(String), typeof(float), typeof(string), typeof(bool), typeof(bool) })]
+            new Type[] {typeof(String), typeof(float), typeof(string), typeof(bool), typeof(bool)})]
         public static class NpcMgr_PlusFriend_Patch
         {
             static void Prefix(ref float value)
@@ -199,9 +211,10 @@ namespace WingMod
         [HarmonyPatch(typeof(RoleMapCls), "speed", MethodType.Getter)]
         public static class RoleMapCls_speed
         {
-            static void Postfix(ref float __result)
+            static void Postfix(RoleMapCls __instance, ref float __result)
             {
-                __result *= 5;
+                if (__instance.key == PlayerCaravan.Caravan.key)
+                    __result *= 5;
             }
         }
 
@@ -365,6 +378,62 @@ namespace WingMod
             }
         }
 
+        //城镇快进
+        // [HarmonyPatch(typeof(DlgTownTips), "ClickItem", typeof(TownCls))]
+        // public static class DlgTownTips_ClickItem
+        // {
+        //     public static System.Action buildOnEnter(System.Action originAction)
+        //     {
+        //         FileLogF.Log("buildOnEnter");
+        //         return () => { FileLogF.Log("OnEnter"); };
+        //     }
+        //
+        //     static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator gen)
+        //     {
+        //         ILCursor c = new ILCursor(instructions);
+        //         LogILs(c);
+        //         // 注入到onEnter函数
+        //         if (c.TryGotoNext(MoveType.Before,
+        //             inst => inst.Instruction.opcode == OpCodes.Ldftn &&
+        //                     inst.Instruction.FormatArgument().EndsWith("b__0()")))
+        //         {
+        //             
+        //             var refOnEnter = AccessTools.Method(typeof(DlgTownTips_ClickItem), "buildOnEnter");
+        //             c.RemoveRange(2);
+        //             c.Prev.Instruction.opcode = OpCodes.Call;
+        //             c.Prev.Instruction.operand = refOnEnter;
+        //         }
+        //
+        //         return c.Context.AsEnumerable();
+        //     }
+        // }
+        [HarmonyPatch(typeof(RunNpcMgr), "PushCmd")]
+        public static class RunNpcMgr_PushCmd
+        {
+            static bool Prefix(RunNpcMgr __instance, CmdBaseData cmd, bool isplayer)
+            {
+                WingLog.Log(
+                    $"RunNpcMgr_PushCmd 1 key={IsKeyShiftHeld} cmd={cmd} isplayer={isplayer} PC.rolekey={PlayerCaravan.Caravan.roleKey}");
+                if (IsKeyShiftHeld && cmd is SNpcCmdMove mm && mm.key == PlayerCaravan.Caravan.roleKey && isplayer)
+                {
+                    // 停止自动
+                    PlayerMgr.isAutoMoveTown = false;
+                    __instance.ClearCmd(mm.key);
+                    AccessTools.Method(typeof(SNpcCmdMove), "OnEndMove").Invoke(mm, new object[] {false});
+                    var town = mm.town;
+                    WingLog.Log($"RunNpcMgr_PushCmd current={PlayerCaravan.Caravan.position} to={town.position}");
+                    //shift按下 立即移动
+                    var toPos = new Vector3(town.position.x, town.position.y, PlayerCaravan.Caravan.position.z);
+                    PlayerCaravan.Caravan.position = toPos;
+                    PlayerCaravan.Caravan.toPos = toPos;
+                    PlayerCaravan.Caravan.OnRefshPos();
+                    return false;
+                }
+
+                return true;
+            }
+        }
+
 
         public static String PosStr(ObjectBase town)
         {
@@ -380,8 +449,8 @@ namespace WingMod
         static void DlgItemDes_Show(UIBase uic, string title, string des, int width = 0)
         {
             AccessTools.Method(typeof(DlgItemDes), "Show",
-                    new Type[] { typeof(UIBase), typeof(string), typeof(string), typeof(int) })
-                .Invoke(null, new object[] { uic, title, des, width });
+                    new Type[] {typeof(UIBase), typeof(string), typeof(string), typeof(int)})
+                .Invoke(null, new object[] {uic, title, des, width});
         }
 
         static void DlgItemDes_Close()
