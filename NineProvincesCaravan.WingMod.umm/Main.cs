@@ -156,6 +156,39 @@ namespace WingMod
             }
         }
 
+        // 城镇列表显示商品
+        [HarmonyPatch(typeof(PnlKnowTownInfo), "OnRefresh")]
+        public static class PnlKnowTownInfo_OnRefresh
+        {
+            static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator gen)
+            {
+                ILCursor c = new ILCursor(instructions);
+                if (c.TryGotoNext(MoveType.Before,
+                    inst => inst.Instruction.MatchCallByName("TradeMgr::GetHot")))
+                {
+                    c.Index += 4;
+                    var hotLabel = gen.DefineLabel();
+                    var hotLabelInstr = c.Context.Instructions[c.Index + 6];
+                    FileLogF.Log("hotLabel {0}", hotLabelInstr);
+                    hotLabelInstr.Instruction.WithLabels(hotLabel);
+                    c.Next.Instruction.opcode = OpCodes.Br;
+                    c.Next.Instruction.operand = hotLabel;
+                }
+
+                return c.Context.AsEnumerable();
+            }
+        }
+
+        // NPC列表显示性别
+        [HarmonyPatch(typeof(PnlKnowNpcItem), "OnRefresh")]
+        public static class PnlKnowNpcItem_OnRefresh
+        {
+            static void Postfix(PnlKnowNpcItem __instance, UICLabel ___lbName)
+            {
+                ___lbName.text += "|" + (__instance.role.rsave.sex == Sex.Female ? "女" : "男");
+            }
+        }
+
         // 跳过小游戏
         [HarmonyPatch(typeof(LittleGameMgr), "GameStart")]
         public static class LittleGameMgr_GameStart_Patch
