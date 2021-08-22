@@ -64,13 +64,24 @@ namespace WingMod
                 // WingLog.Log($"IsKeyShiftDown={IsKeyShiftDown}");
             }
         }
-        // ceshi 
+
+        // 测试 
         [HarmonyPatch(typeof(PnlBase), "OnShow")]
         public static class PnlBase_OnShow
         {
             static void Prefix(PnlBase __instance)
             {
-               WingLog.Log($"{__instance} OnShow");
+                WingLog.Log($"{__instance} OnShow");
+            }
+        }
+
+        // 测试 
+        [HarmonyPatch(typeof(UIManage), "Show")]
+        public static class UIManage_Show
+        {
+            static void Prefix(UIDlg dlg)
+            {
+                WingLog.Log($"{dlg} Show");
             }
         }
 
@@ -117,11 +128,50 @@ namespace WingMod
             }
         }
 
-        // GongYiDianJi bu XiaoHao
+        // 仓库按住shift点确认不减商品
+        [HarmonyPatch(typeof(PnlStoreDes), "OnApply")]
+        public static class PnlStoreDes_OnApply
+        {
+            static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+            {
+                ILCursor c = new ILCursor(instructions);
+                // LogILs(c);
+                var cnt = 0;
+                var patch = AccessTools.Method(typeof(PnlStoreDes_OnApply), "PatchChange");
+                while (c.TryGotoNext(MoveType.After,
+                    inst => inst.Instruction.MatchCallByName("ItemStore::get_change")))
+                {
+                    cnt++;
+                    if (cnt == 3 || cnt == 4) //取neg
+                    {
+                        c.Index++;
+                    }
+                    else if (cnt > 4)
+                    {
+                        break;
+                    }
+
+                    if (cnt > 1)
+                    {
+                        c.Emit(OpCodes.Call, patch);
+                    }
+                }
+
+                return c.Context.AsEnumerable();
+            }
+
+            static int PatchChange(int change)
+            {
+                if (IsKeyShiftHeld) return Math.Abs(change);
+                return change;
+            }
+        }
+
+        // 工艺典籍不消耗
         [HarmonyPatch(typeof(PlayerMgr), "UseResCraft")]
         public static class PlayerMgr_UseResCraft
         {
-            static void Prefix(PlayerMgr __instance,int res)
+            static void Prefix(PlayerMgr __instance, int res)
             {
                 if (!__instance.save.dicResCraft.ContainsKey(res))
                     return;
@@ -226,6 +276,32 @@ namespace WingMod
                     }
                 }), 0.3f);
                 return false;
+            }
+        }
+
+        // 等待的完成时间为0.3f
+        [HarmonyPatch(typeof(DlgWaitLoading), "OnFinsh")]
+        public static class DlgWaitLoading_OnFinsh
+        {
+            static void Postfix(ref float ___timeTotal)
+            {
+                ___timeTotal = 0.3f;
+            }
+        }
+
+        // 策略必成功
+        [HarmonyPatch(typeof(ChamberCls), "OnTacticsFailure")]
+        public static class ChamberCls_OnTacticsFailure
+        {
+            static bool Prefix(ChamberCls __instance, TacticsCls tac)
+            {
+                if (__instance.isPlayer)
+                {
+                    AccessTools.Method(typeof(ChamberCls), "OnTacticsComplete").Invoke(__instance, new object[] {tac});
+                    return false;
+                }
+
+                return true;
             }
         }
 
@@ -479,7 +555,8 @@ namespace WingMod
                 return true;
             }
         }
-        // wuping yidong
+
+        // 查找物品的城市支撑快速移动
         [HarmonyPatch(typeof(DlgMenuGoods), "OnDgTownsCreateItem")]
         public static class DlgMenuGoods_OnDgTownsCreateItem
         {
@@ -487,9 +564,10 @@ namespace WingMod
             {
                 ILCursor c = new ILCursor(instructions);
                 if (c.TryGotoNext(MoveType.Before,
-                    inst => inst.Instruction.opcode==OpCodes.Stfld))
+                    inst => inst.Instruction.opcode == OpCodes.Stfld))
                 {
-                    c.Emit(OpCodes.Callvirt, AccessTools.Method(typeof(DlgMenuGoods_OnDgTownsCreateItem), "PatchHandler"));
+                    c.Emit(OpCodes.Callvirt,
+                        AccessTools.Method(typeof(DlgMenuGoods_OnDgTownsCreateItem), "PatchHandler"));
                 }
 
                 return c.Context.AsEnumerable();
@@ -501,11 +579,12 @@ namespace WingMod
                 {
                     origin();
                     // get town windows
-                    DlgTownTips dlgTownTips = (DlgTownTips) BaseInstance<DlgMgr>.Instance.GetOpen(DlgMgr.EnumDlg.DlgTownTips);
+                    DlgTownTips dlgTownTips =
+                        (DlgTownTips) BaseInstance<DlgMgr>.Instance.GetOpen(DlgMgr.EnumDlg.DlgTownTips);
                     if (dlgTownTips != null)
                     {
                         // set tip allow autoMove
-                        AccessTools.Field(typeof(DlgTownTips),"sType").SetValue(dlgTownTips, 0);
+                        AccessTools.Field(typeof(DlgTownTips), "sType").SetValue(dlgTownTips, 0);
                     }
                 };
             }

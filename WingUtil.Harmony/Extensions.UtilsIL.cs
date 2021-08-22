@@ -34,6 +34,11 @@ namespace WingUtil.Harmony
             return type == typeof(string) ? argument.ToString().ToLiteral() : argument.ToString().Trim();
         }
 
+        public static void SetNop(this CodeInstruction instr)
+        {
+            instr.opcode = OpCodes.Nop;
+            instr.operand = null;
+        }
 
         public static bool MatchCall(this CodeInstruction instr, out MethodBase value)
         {
