@@ -64,6 +64,15 @@ namespace WingMod
                 // WingLog.Log($"IsKeyShiftDown={IsKeyShiftDown}");
             }
         }
+        // ceshi 
+        [HarmonyPatch(typeof(PnlBase), "OnShow")]
+        public static class PnlBase_OnShow
+        {
+            static void Prefix(PnlBase __instance)
+            {
+               WingLog.Log($"{__instance} OnShow");
+            }
+        }
 
         [HarmonyPatch(typeof(DlgSettings), "OnUpdate")]
         static class DlgSettings_Patch
@@ -108,11 +117,15 @@ namespace WingMod
             }
         }
 
-        [HarmonyPatch(typeof(PlayerMgr), "ClearData")]
-        public static class PlayerMgr_ClearData
+        // GongYiDianJi bu XiaoHao
+        [HarmonyPatch(typeof(PlayerMgr), "UseResCraft")]
+        public static class PlayerMgr_UseResCraft
         {
-            static void Postfix()
+            static void Prefix(PlayerMgr __instance,int res)
             {
+                if (!__instance.save.dicResCraft.ContainsKey(res))
+                    return;
+                __instance.save.dicResCraft[res]++;
             }
         }
 
@@ -445,8 +458,8 @@ namespace WingMod
         {
             static bool Prefix(RunNpcMgr __instance, CmdBaseData cmd, bool isplayer)
             {
-                WingLog.Log(
-                    $"RunNpcMgr_PushCmd 1 key={IsKeyShiftHeld} cmd={cmd} isplayer={isplayer} PC.rolekey={PlayerCaravan.Caravan.roleKey}");
+                // WingLog.Log(
+                //     $"RunNpcMgr_PushCmd 1 key={IsKeyShiftHeld} cmd={cmd} isplayer={isplayer} PC.rolekey={PlayerCaravan.Caravan.roleKey}");
                 if (IsKeyShiftHeld && cmd is SNpcCmdMove mm && mm.key == PlayerCaravan.Caravan.roleKey && isplayer)
                 {
                     // 停止自动
@@ -464,6 +477,37 @@ namespace WingMod
                 }
 
                 return true;
+            }
+        }
+        // wuping yidong
+        [HarmonyPatch(typeof(DlgMenuGoods), "OnDgTownsCreateItem")]
+        public static class DlgMenuGoods_OnDgTownsCreateItem
+        {
+            static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator gen)
+            {
+                ILCursor c = new ILCursor(instructions);
+                if (c.TryGotoNext(MoveType.Before,
+                    inst => inst.Instruction.opcode==OpCodes.Stfld))
+                {
+                    c.Emit(OpCodes.Callvirt, AccessTools.Method(typeof(DlgMenuGoods_OnDgTownsCreateItem), "PatchHandler"));
+                }
+
+                return c.Context.AsEnumerable();
+            }
+
+            static System.Action PatchHandler(System.Action origin)
+            {
+                return () =>
+                {
+                    origin();
+                    // get town windows
+                    DlgTownTips dlgTownTips = (DlgTownTips) BaseInstance<DlgMgr>.Instance.GetOpen(DlgMgr.EnumDlg.DlgTownTips);
+                    if (dlgTownTips != null)
+                    {
+                        // set tip allow autoMove
+                        AccessTools.Field(typeof(DlgTownTips),"sType").SetValue(dlgTownTips, 0);
+                    }
+                };
             }
         }
 
