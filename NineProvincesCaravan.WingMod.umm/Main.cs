@@ -367,6 +367,14 @@ namespace WingMod
                 }
             }
         }
+        [HarmonyPatch(typeof(TownCls), "AddFriend")]
+        public static class TownCls_AddFriend
+        {
+            static void Prefix(ref float v)
+            {
+                if (v < 0) v = 1;
+            }
+        }
 
         // 任务显示坐标
         // des在nameTips之前，所有只改这里
