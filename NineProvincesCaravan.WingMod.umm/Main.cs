@@ -248,7 +248,39 @@ namespace WingMod
         {
             static void Postfix(PnlKnowNpcItem __instance, UICLabel ___lbName)
             {
-                ___lbName.text += "|" + (__instance.role.rsave.sex == Sex.Female ? "女" : "男");
+                ___lbName.text = (__instance.role.rsave.sex == Sex.Female ? "女" : "男") + "|" + ___lbName.text;
+            }
+        }
+
+        // npc列表支持性别排序
+        [HarmonyPatch(typeof(DlgSelectRoles), "OrderBy")]
+        public static class DlgSelectRoles_OrderBy
+        {
+            static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator gen)
+            {
+                ILCursor c = new ILCursor(instructions);
+                // LogILs(c);
+                if (c.TryGotoNext(MoveType.Before,
+                    inst => inst.Instruction.MatchCallByName("RoleBase::get_ikey")))
+                {
+                    c.Next.Instruction.opcode = OpCodes.Call;
+                    c.Next.Instruction.operand = AccessTools.Method(typeof(DlgSelectRoles_OrderBy), "GetIkey");
+                }
+
+                // LogILs(c, "Patched");
+                return c.Context.AsEnumerable();
+            }
+
+            static int GetIkey(RoleCls role)
+            {
+                if (role.rsave.sex == Sex.Female)
+                {
+                    return 10000000 + role.ikey;
+                }
+                else
+                {
+                    return role.ikey;
+                }
             }
         }
 
@@ -259,7 +291,7 @@ namespace WingMod
             static bool Prefix(GameType type, float diff, HandleGameResult handle)
             {
                 if (handle == null) return true;
-                DlgWaitLoading.Show("跳过小游戏...", (System.Action) (() =>
+                DlgWaitLoading.Show("跳过小游戏...", (System.Action)(() =>
                 {
                     switch (type)
                     {
@@ -297,7 +329,7 @@ namespace WingMod
             {
                 if (__instance.isPlayer)
                 {
-                    AccessTools.Method(typeof(ChamberCls), "OnTacticsComplete").Invoke(__instance, new object[] {tac});
+                    AccessTools.Method(typeof(ChamberCls), "OnTacticsComplete").Invoke(__instance, new object[] { tac });
                     return false;
                 }
 
@@ -308,7 +340,7 @@ namespace WingMod
         // 好友不减
         //public float PlusFriend(string npckey, float value, string npc2key = null, bool tip = true, bool plus = false)
         [HarmonyPatch(typeof(NpcMgr), "PlusFriend",
-            new Type[] {typeof(String), typeof(float), typeof(string), typeof(bool), typeof(bool)})]
+            new Type[] { typeof(String), typeof(float), typeof(string), typeof(bool), typeof(bool) })]
         public static class NpcMgr_PlusFriend_Patch
         {
             static void Prefix(ref float value)
@@ -367,12 +399,38 @@ namespace WingMod
                 }
             }
         }
+
+        // 城镇不掉关系
         [HarmonyPatch(typeof(TownCls), "AddFriend")]
         public static class TownCls_AddFriend
         {
             static void Prefix(ref float v)
             {
                 if (v < 0) v = 1;
+            }
+        }
+
+        // 探索产业必成功
+        [HarmonyPatch(typeof(ExploreMgr), "CheckIndusExplore")]
+        public static class ExploreMgr_CheckIndusExplore
+        {
+            static void Postfix(ref bool __result)
+            {
+                __result = true;
+            }
+        }
+
+        // 拍卖底价拿
+        [HarmonyPatch(typeof(DlgGamePaimai), "LoadGood")]
+        public static class DlgGamePaimai_LoadGood
+        {
+            static void Postfix(ref Dictionary<ItemType, float[]> ___dicMyPricePre)
+            {
+                foreach (var keyValuePair in ___dicMyPricePre)
+                {
+                    keyValuePair.Value[0] = 0f;
+                    keyValuePair.Value[1] = 0.5f;
+                }
             }
         }
 
@@ -549,7 +607,7 @@ namespace WingMod
                     // 停止自动
                     PlayerMgr.isAutoMoveTown = false;
                     __instance.ClearCmd(mm.key);
-                    AccessTools.Method(typeof(SNpcCmdMove), "OnEndMove").Invoke(mm, new object[] {false});
+                    AccessTools.Method(typeof(SNpcCmdMove), "OnEndMove").Invoke(mm, new object[] { false });
                     var town = mm.town;
                     WingLog.Log($"RunNpcMgr_PushCmd current={PlayerCaravan.Caravan.position} to={town.position}");
                     //shift按下 立即移动
@@ -588,7 +646,7 @@ namespace WingMod
                     origin();
                     // get town windows
                     DlgTownTips dlgTownTips =
-                        (DlgTownTips) BaseInstance<DlgMgr>.Instance.GetOpen(DlgMgr.EnumDlg.DlgTownTips);
+                        (DlgTownTips)BaseInstance<DlgMgr>.Instance.GetOpen(DlgMgr.EnumDlg.DlgTownTips);
                     if (dlgTownTips != null)
                     {
                         // set tip allow autoMove
@@ -613,8 +671,8 @@ namespace WingMod
         static void DlgItemDes_Show(UIBase uic, string title, string des, int width = 0)
         {
             AccessTools.Method(typeof(DlgItemDes), "Show",
-                    new Type[] {typeof(UIBase), typeof(string), typeof(string), typeof(int)})
-                .Invoke(null, new object[] {uic, title, des, width});
+                    new Type[] { typeof(UIBase), typeof(string), typeof(string), typeof(int) })
+                .Invoke(null, new object[] { uic, title, des, width });
         }
 
         static void DlgItemDes_Close()
