@@ -336,6 +336,43 @@ namespace WingMod
                 return true;
             }
         }
+        // 转运只需1天
+        [HarmonyPatch(typeof(DlgChamberTransport), "OnEnterTransport")]
+        public static class DlgChamberTransport_OnEnterTransport
+        {
+            static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator gen)
+            {
+                ILCursor c = new ILCursor(instructions);
+                // LogILs(c);
+                if (c.TryGotoNext(MoveType.After,
+                    inst => inst.Instruction.MatchCallByName("GameComm::GetDisDay")))
+                {
+                    c.Emit(OpCodes.Pop, null);
+                    c.Emit(OpCodes.Ldc_I4_1, null);
+                }
+
+                // LogILs(c, "Patched");
+                return c.Context.AsEnumerable();
+            }
+        }
+        [HarmonyPatch(typeof(DlgMenuStore), "OnEnterTransport")]
+        public static class DlgMenuStore_OnEnterTransport
+        {
+            static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator gen)
+            {
+                ILCursor c = new ILCursor(instructions);
+                // LogILs(c);
+                if (c.TryGotoNext(MoveType.After,
+                    inst => inst.Instruction.MatchCallByName("GameComm::GetDisDay")))
+                {
+                    c.Emit(OpCodes.Pop, null);
+                    c.Emit(OpCodes.Ldc_I4_1, null);
+                }
+
+                // LogILs(c, "Patched");
+                return c.Context.AsEnumerable();
+            }
+        }
 
         // 好友不减
         //public float PlusFriend(string npckey, float value, string npc2key = null, bool tip = true, bool plus = false)
@@ -372,6 +409,7 @@ namespace WingMod
             }
         }
 
+        
         // 必逃跑
         [HarmonyPatch(typeof(DlgFight), "GetRunPre")]
         public static class DlgFight_GetRunPre
