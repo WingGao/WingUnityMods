@@ -17,11 +17,34 @@ namespace WingMod
 {
     static class Main
     {
+        // 配置
+        public class Settings : UnityModManager.ModSettings, IDrawable
+        {
+            [Header("修改")] [Draw("移动动速度（自己有效）")] public float MySpeed = 2;
+
+            [Draw("基础移动速度（自己商会有效）")] public float BaseSpeed = 5;
+
+            [Header("商会")] [Draw("产业建造忽视气候")] public bool IndustryIgnoreClimate = true;
+
+            public void OnChange()
+            {
+            }
+
+            public override void Save(UnityModManager.ModEntry modEntry)
+            {
+                Save(this, modEntry);
+            }
+        }
+
         public static UnityModManager.ModEntry mod;
+        public static Settings settings;
         private static bool IsKeyShiftHeld = false;
+
 
         static void Load(UnityModManager.ModEntry modEntry)
         {
+            settings = Settings.Load<Settings>(modEntry);
+
             Harmony.DEBUG = true;
             FileLog.Reset();
             WingLog.Reset();
@@ -31,8 +54,15 @@ namespace WingMod
 
             mod = modEntry;
             modEntry.OnToggle = OnToggle;
+            modEntry.OnGUI = OnGUI;
+            modEntry.OnSaveGUI = OnSaveGUI;
 
             WingLog.Log("hello wing load");
+        }
+
+        static void OnGUI(UnityModManager.ModEntry modEntry)
+        {
+            settings.Draw(modEntry);
         }
 
         static bool OnToggle(UnityModManager.ModEntry modEntry, bool value /* active or inactive */)
@@ -48,6 +78,11 @@ namespace WingMod
 
             // enabled = value;
             return true; // If true, the mod will switch the state. If not, the state will not change.
+        }
+
+        static void OnSaveGUI(UnityModManager.ModEntry modEntry)
+        {
+            settings.Save(modEntry);
         }
 
         static void Run()
@@ -178,6 +213,22 @@ namespace WingMod
                 __instance.save.dicResCraft[res]++;
             }
         }
+
+        // 产业建造忽视气候
+        [HarmonyPatch(typeof(DlgSelectIndustry), "OnCheckBuild")]
+        public static class DlgSelectIndustry_OnCheckBuild
+        {
+            static void Prefix(DlgSelectIndustry __instance, IndustryData ___selectIndusty, ResYieldData ___selectRes)
+            {
+                var items = __instance.dicIndusDisRes[___selectIndusty.key][___selectRes.res].Where(disType =>
+                {
+                    if (disType == DlgSelectIndustry.DisType.Climate && settings.IndustryIgnoreClimate) return false;
+                    return true;
+                }).ToList();
+                __instance.dicIndusDisRes[___selectIndusty.key][___selectRes.res] = items;
+            }
+        }
+
 
         // 城镇显示商品信息
         [HarmonyPatch(typeof(PnlTownTips), "OnTownTip")]
@@ -336,28 +387,18 @@ namespace WingMod
                 return true;
             }
         }
+
         // 转运只需1天
-        [HarmonyPatch(typeof(DlgChamberTransport), "OnEnterTransport")]
+        [HarmonyPatch]
         public static class DlgChamberTransport_OnEnterTransport
         {
-            static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator gen)
+            static IEnumerable<MethodBase> TargetMethods()
             {
-                ILCursor c = new ILCursor(instructions);
-                // LogILs(c);
-                if (c.TryGotoNext(MoveType.After,
-                    inst => inst.Instruction.MatchCallByName("GameComm::GetDisDay")))
-                {
-                    c.Emit(OpCodes.Pop, null);
-                    c.Emit(OpCodes.Ldc_I4_1, null);
-                }
-
-                // LogILs(c, "Patched");
-                return c.Context.AsEnumerable();
+                yield return AccessTools.Method(typeof(DlgChamberTransport), "OnEnterTransport");
+                yield return AccessTools.Method(typeof(DlgMenuStore), "OnEnterTransport");
+                yield return AccessTools.Method(typeof(DlgMenuStore), "OnEnterTransportFest");
             }
-        }
-        [HarmonyPatch(typeof(DlgMenuStore), "OnEnterTransport")]
-        public static class DlgMenuStore_OnEnterTransport
-        {
+
             static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator gen)
             {
                 ILCursor c = new ILCursor(instructions);
@@ -398,18 +439,29 @@ namespace WingMod
             }
         }
 
-        // 移动速度5倍
+        // 移动速度 5倍
         [HarmonyPatch(typeof(RoleMapCls), "speed", MethodType.Getter)]
         public static class RoleMapCls_speed
         {
             static void Postfix(RoleMapCls __instance, ref float __result)
             {
                 if (__instance.key == PlayerCaravan.Caravan.key)
-                    __result *= 5;
+                    __result *= settings.MySpeed;
             }
         }
 
-        
+        // 基础移动速度
+        [HarmonyPatch(typeof(RoleMapCls), "speedBase", MethodType.Getter)]
+        public static class RoleMapCls_speedBase
+        {
+            static void Postfix(RoleMapCls __instance, ref float __result)
+            {
+                if (__instance.isPlayerCaravan || __instance.isChamberPlayer)
+                    __result *= settings.BaseSpeed;
+            }
+        }
+
+
         // 必逃跑
         [HarmonyPatch(typeof(DlgFight), "GetRunPre")]
         public static class DlgFight_GetRunPre
