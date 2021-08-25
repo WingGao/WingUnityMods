@@ -23,6 +23,7 @@ namespace WingMod
             [Header("修改")] [Draw("移动动速度（自己有效）")] public float MySpeed = 2;
 
             [Draw("基础移动速度（自己商会有效）")] public float BaseSpeed = 5;
+            [Draw("制作经验倍数")] public float MakeExpMul = 5;
 
             [Header("商会")] [Draw("产业建造忽视气候")] public bool IndustryIgnoreClimate = true;
 
@@ -342,7 +343,7 @@ namespace WingMod
             static bool Prefix(GameType type, float diff, HandleGameResult handle)
             {
                 if (handle == null) return true;
-                DlgWaitLoading.Show("跳过小游戏...", (System.Action)(() =>
+                DlgWaitLoading.Show("跳过小游戏...", (System.Action) (() =>
                 {
                     switch (type)
                     {
@@ -380,7 +381,7 @@ namespace WingMod
             {
                 if (__instance.isPlayer)
                 {
-                    AccessTools.Method(typeof(ChamberCls), "OnTacticsComplete").Invoke(__instance, new object[] { tac });
+                    AccessTools.Method(typeof(ChamberCls), "OnTacticsComplete").Invoke(__instance, new object[] {tac});
                     return false;
                 }
 
@@ -418,7 +419,7 @@ namespace WingMod
         // 好友不减
         //public float PlusFriend(string npckey, float value, string npc2key = null, bool tip = true, bool plus = false)
         [HarmonyPatch(typeof(NpcMgr), "PlusFriend",
-            new Type[] { typeof(String), typeof(float), typeof(string), typeof(bool), typeof(bool) })]
+            new Type[] {typeof(String), typeof(float), typeof(string), typeof(bool), typeof(bool)})]
         public static class NpcMgr_PlusFriend_Patch
         {
             static void Prefix(ref float value)
@@ -580,7 +581,7 @@ namespace WingMod
         {
             static void Postfix(ref int __result)
             {
-                if (__result > 0) __result *= 10;
+                if (__result > 0) __result = (int) (__result * settings.MakeExpMul);
             }
         }
 
@@ -697,7 +698,7 @@ namespace WingMod
                     // 停止自动
                     PlayerMgr.isAutoMoveTown = false;
                     __instance.ClearCmd(mm.key);
-                    AccessTools.Method(typeof(SNpcCmdMove), "OnEndMove").Invoke(mm, new object[] { false });
+                    AccessTools.Method(typeof(SNpcCmdMove), "OnEndMove").Invoke(mm, new object[] {false});
                     var town = mm.town;
                     WingLog.Log($"RunNpcMgr_PushCmd current={PlayerCaravan.Caravan.position} to={town.position}");
                     //shift按下 立即移动
@@ -736,7 +737,7 @@ namespace WingMod
                     origin();
                     // get town windows
                     DlgTownTips dlgTownTips =
-                        (DlgTownTips)BaseInstance<DlgMgr>.Instance.GetOpen(DlgMgr.EnumDlg.DlgTownTips);
+                        (DlgTownTips) BaseInstance<DlgMgr>.Instance.GetOpen(DlgMgr.EnumDlg.DlgTownTips);
                     if (dlgTownTips != null)
                     {
                         // set tip allow autoMove
@@ -761,8 +762,8 @@ namespace WingMod
         static void DlgItemDes_Show(UIBase uic, string title, string des, int width = 0)
         {
             AccessTools.Method(typeof(DlgItemDes), "Show",
-                    new Type[] { typeof(UIBase), typeof(string), typeof(string), typeof(int) })
-                .Invoke(null, new object[] { uic, title, des, width });
+                    new Type[] {typeof(UIBase), typeof(string), typeof(string), typeof(int)})
+                .Invoke(null, new object[] {uic, title, des, width});
         }
 
         static void DlgItemDes_Close()
