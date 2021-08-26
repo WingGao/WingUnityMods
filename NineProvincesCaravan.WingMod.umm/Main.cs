@@ -24,8 +24,10 @@ namespace WingMod
 
             [Draw("基础移动速度（自己商会有效）")] public float BaseSpeed = 5;
             [Draw("制作经验倍数")] public float MakeExpMul = 5;
+            [Draw("影响值不减")] public bool InfDecEnable = true;
 
             [Header("商会")] [Draw("产业建造忽视气候")] public bool IndustryIgnoreClimate = true;
+            [Draw("产业建造忽视种类")] public bool IndustryIgnoreMax = true;
 
             public void OnChange()
             {
@@ -58,7 +60,7 @@ namespace WingMod
             modEntry.OnGUI = OnGUI;
             modEntry.OnSaveGUI = OnSaveGUI;
 
-            WingLog.Log("hello wing load");
+            LogF("WingMod load");
         }
 
         static void OnGUI(UnityModManager.ModEntry modEntry)
@@ -88,7 +90,7 @@ namespace WingMod
 
         static void Run()
         {
-            WingLog.Log("hello wing run");
+            LogF("WingMod run");
         }
 
         [HarmonyPatch(typeof(GameMgr), "Update")]
@@ -107,7 +109,7 @@ namespace WingMod
         {
             static void Prefix(PnlBase __instance)
             {
-                WingLog.Log($"{__instance} OnShow");
+                LogF($"{__instance} OnShow");
             }
         }
 
@@ -117,7 +119,7 @@ namespace WingMod
         {
             static void Prefix(UIDlg dlg)
             {
-                WingLog.Log($"{dlg} Show");
+                LogF($"{dlg} Show");
             }
         }
 
@@ -127,28 +129,6 @@ namespace WingMod
             static void Postfix(DlgSettings __instance, ref UICLabel ___lbVersion)
             {
                 ___lbVersion.text = DlgSettings.Version.Ver + " patch by Wing";
-            }
-        }
-
-        // 测试IL
-        [HarmonyPatch(typeof(DlgSettings), "UpdateFps")]
-        public static class DlgSettings_UpdateFps_Patch
-        {
-            static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-            {
-                ILCursor c = new ILCursor(instructions);
-                if (c.TryGotoNext(MoveType.Before,
-                    inst => inst.Instruction.MatchCallByName("Framework.UICLabel::set_text")))
-                {
-                    FileLogF.Log("Find Framework.UICLabel::set_text");
-                    c.Next.Previous.Previous.Instruction.operand = "f3";
-                    // c.Emit(OpCodes.Ldarg_0);
-                    // c.Emit(OpCodes.Ldstr, "x");
-                    // c.Next.Instruction.opcode = OpCodes.Nop;
-                    // c.Next.Instruction.operand = null;
-                }
-
-                return c.Context.AsEnumerable();
             }
         }
 
@@ -215,7 +195,7 @@ namespace WingMod
             }
         }
 
-        // 产业建造忽视气候
+        // 产业建造条件限制
         [HarmonyPatch(typeof(DlgSelectIndustry), "OnCheckBuild")]
         public static class DlgSelectIndustry_OnCheckBuild
         {
@@ -224,12 +204,22 @@ namespace WingMod
                 var items = __instance.dicIndusDisRes[___selectIndusty.key][___selectRes.res].Where(disType =>
                 {
                     if (disType == DlgSelectIndustry.DisType.Climate && settings.IndustryIgnoreClimate) return false;
+                    if (disType == DlgSelectIndustry.DisType.MaxIndus && settings.IndustryIgnoreMax) return false;
                     return true;
                 }).ToList();
                 __instance.dicIndusDisRes[___selectIndusty.key][___selectRes.res] = items;
             }
         }
 
+        // 商会内成员奖赏降低金钱
+        [HarmonyPatch(typeof(DlgChamberRoleFriend), "GetMoneyUp")]
+        public static class DlgChamberRoleFriend_GetMoneyUp
+        {
+            static void Postfix(DlgChamberRoleFriend.RoleFriendUp roleup, ref int __result)
+            {
+                if (__result > 0) __result = roleup.friendup;
+            }
+        }
 
         // 城镇显示商品信息
         [HarmonyPatch(typeof(PnlTownTips), "OnTownTip")]
@@ -261,7 +251,7 @@ namespace WingMod
                     c.Index += 4;
                     var hotLabel = gen.DefineLabel();
                     var hotLabelInstr = c.Context.Instructions[c.Index + 6];
-                    FileLogF.Log("hotLabel {0}", hotLabelInstr);
+                    // FileLogF.Log("hotLabel {0}", hotLabelInstr);
                     hotLabelInstr.Instruction.WithLabels(hotLabel);
                     c.Next.Instruction.opcode = OpCodes.Br;
                     c.Next.Instruction.operand = hotLabel;
@@ -284,7 +274,7 @@ namespace WingMod
                     c.Index += 4;
                     var hotLabel = gen.DefineLabel();
                     var hotLabelInstr = c.Context.Instructions[c.Index + 6];
-                    FileLogF.Log("hotLabel {0}", hotLabelInstr);
+                    // Debug.Log("hotLabel {0}", hotLabelInstr);
                     hotLabelInstr.Instruction.WithLabels(hotLabel);
                     c.Next.Instruction.opcode = OpCodes.Br;
                     c.Next.Instruction.operand = hotLabel;
@@ -343,7 +333,7 @@ namespace WingMod
             static bool Prefix(GameType type, float diff, HandleGameResult handle)
             {
                 if (handle == null) return true;
-                DlgWaitLoading.Show("跳过小游戏...", (System.Action) (() =>
+                DlgWaitLoading.Show("跳过小游戏...", (System.Action)(() =>
                 {
                     switch (type)
                     {
@@ -381,7 +371,7 @@ namespace WingMod
             {
                 if (__instance.isPlayer)
                 {
-                    AccessTools.Method(typeof(ChamberCls), "OnTacticsComplete").Invoke(__instance, new object[] {tac});
+                    AccessTools.Method(typeof(ChamberCls), "OnTacticsComplete").Invoke(__instance, new object[] { tac });
                     return false;
                 }
 
@@ -419,7 +409,7 @@ namespace WingMod
         // 好友不减
         //public float PlusFriend(string npckey, float value, string npc2key = null, bool tip = true, bool plus = false)
         [HarmonyPatch(typeof(NpcMgr), "PlusFriend",
-            new Type[] {typeof(String), typeof(float), typeof(string), typeof(bool), typeof(bool)})]
+            new Type[] { typeof(String), typeof(float), typeof(string), typeof(bool), typeof(bool) })]
         public static class NpcMgr_PlusFriend_Patch
         {
             static void Prefix(ref float value)
@@ -437,6 +427,19 @@ namespace WingMod
             {
                 if (v > 0) v /= 10;
                 else v *= 2;
+            }
+        }
+
+        // 影响值不掉
+        [HarmonyPatch(typeof(RoleMapCls), "PlusInf")]
+        public static class RoleMapCls_PlusInf
+        {
+            static void Prefix(RoleMapCls __instance, ref int v)
+            {
+                if (settings.InfDecEnable)
+                {
+                    if (v <= 0 && __instance.isPlayer) v = 5;
+                }
             }
         }
 
@@ -486,7 +489,7 @@ namespace WingMod
             {
                 if (__state && ____list != null)
                 {
-                    ____list.ForEach(v => { FileLogF.Log("Town {0}[{2}] Pos={1}", v.name, v.position, v.townKey); });
+                    ____list.ForEach(v => { LogF($"Town {v.name}[{v.townKey}] Pos={v.position}"); });
                 }
             }
         }
@@ -581,7 +584,7 @@ namespace WingMod
         {
             static void Postfix(ref int __result)
             {
-                if (__result > 0) __result = (int) (__result * settings.MakeExpMul);
+                if (__result > 0) __result = (int)(__result * settings.MakeExpMul);
             }
         }
 
@@ -652,7 +655,7 @@ namespace WingMod
                     bookData.price = Math.Min(100000, bookData.price); //最高10w
                     var item = AutoData.Item.GetForId(bookData.key);
                     item.price = bookData.price;
-                    FileLogF.Log($"修改书的价格 {bookData.name} ${item.price}");
+                    LogF($"修改书的价格 {bookData.name} ${item.price}");
                 }
             }
         }
@@ -698,9 +701,9 @@ namespace WingMod
                     // 停止自动
                     PlayerMgr.isAutoMoveTown = false;
                     __instance.ClearCmd(mm.key);
-                    AccessTools.Method(typeof(SNpcCmdMove), "OnEndMove").Invoke(mm, new object[] {false});
+                    AccessTools.Method(typeof(SNpcCmdMove), "OnEndMove").Invoke(mm, new object[] { false });
                     var town = mm.town;
-                    WingLog.Log($"RunNpcMgr_PushCmd current={PlayerCaravan.Caravan.position} to={town.position}");
+                    LogF($"RunNpcMgr_PushCmd current={PlayerCaravan.Caravan.position} to={town.position}");
                     //shift按下 立即移动
                     var toPos = new Vector3(town.position.x, town.position.y, PlayerCaravan.Caravan.position.z);
                     PlayerCaravan.Caravan.position = toPos;
@@ -737,7 +740,7 @@ namespace WingMod
                     origin();
                     // get town windows
                     DlgTownTips dlgTownTips =
-                        (DlgTownTips) BaseInstance<DlgMgr>.Instance.GetOpen(DlgMgr.EnumDlg.DlgTownTips);
+                        (DlgTownTips)BaseInstance<DlgMgr>.Instance.GetOpen(DlgMgr.EnumDlg.DlgTownTips);
                     if (dlgTownTips != null)
                     {
                         // set tip allow autoMove
@@ -746,6 +749,21 @@ namespace WingMod
                 };
             }
         }
+
+        #region 商会工作
+
+        // 商队交易城镇
+        [HarmonyPatch(typeof(CCmdTradeGood), "GetTradeTown")]
+        public static class CCmdTradeGood_GetTradeTown
+        {
+            static void Postfix(RoleMapCls role, List<TownCls> __result)
+            {
+                // 打印日志
+                LogF($"CCmdTradeGood_GetTradeTown {role.name} : {String.Join(",", __result.Select(x => x.name))}");
+            }
+        }
+
+        #endregion
 
 
         public static String PosStr(ObjectBase town)
@@ -762,8 +780,8 @@ namespace WingMod
         static void DlgItemDes_Show(UIBase uic, string title, string des, int width = 0)
         {
             AccessTools.Method(typeof(DlgItemDes), "Show",
-                    new Type[] {typeof(UIBase), typeof(string), typeof(string), typeof(int)})
-                .Invoke(null, new object[] {uic, title, des, width});
+                    new Type[] { typeof(UIBase), typeof(string), typeof(string), typeof(int) })
+                .Invoke(null, new object[] { uic, title, des, width });
         }
 
         static void DlgItemDes_Close()
@@ -784,6 +802,11 @@ namespace WingMod
             }
 
             WingLog.Log("=== {0} END ===", tag);
+        }
+
+        static void LogF(string str)
+        {
+            UnityModManager.Logger.Log(str);
         }
     }
 }
