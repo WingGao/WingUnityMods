@@ -39,6 +39,11 @@ namespace WingUtil.Harmony
             instr.opcode = OpCodes.Nop;
             instr.operand = null;
         }
+        public static void Set(this CodeInstruction instr,OpCode code,object operand = null)
+        {
+            instr.opcode = code;
+            instr.operand = operand;
+        }
 
         public static bool MatchCall(this CodeInstruction instr, out MethodBase value)
         {

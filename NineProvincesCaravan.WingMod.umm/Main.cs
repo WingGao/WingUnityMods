@@ -28,6 +28,7 @@ namespace WingMod
 
             [Header("商会")] [Draw("产业建造忽视气候")] public bool IndustryIgnoreClimate = true;
             [Draw("产业建造忽视种类")] public bool IndustryIgnoreMax = true;
+            [Draw("工作-清理库存不清理主会")] public bool JobClearStoreIgnoreMain = true;
 
             public void OnChange()
             {
@@ -390,10 +391,21 @@ namespace WingMod
                 yield return AccessTools.Method(typeof(DlgMenuStore), "OnEnterTransportFest");
             }
 
-            static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator gen)
+            static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator gen, MethodBase original)
             {
                 ILCursor c = new ILCursor(instructions);
-                // LogILs(c);
+
+                if (original.Name == "OnEnterTransportFest")
+                {
+                    if (c.TryGotoNext(MoveType.Before,
+                        inst => inst.Instruction.MatchCallByName("System.Linq.Enumerable::OrderBy")))
+                    {
+                        LogF("find OnEnterTransportFest");
+                        c.Index += 2;
+                        c.Emit(OpCodes.Call, AccessTools.Method(typeof(DlgChamberTransport_OnEnterTransport), "OnEnterTransportFest_OrderBy"));
+                    }
+                }
+
                 if (c.TryGotoNext(MoveType.After,
                     inst => inst.Instruction.MatchCallByName("GameComm::GetDisDay")))
                 {
@@ -403,6 +415,20 @@ namespace WingMod
 
                 // LogILs(c, "Patched");
                 return c.Context.AsEnumerable();
+            }
+
+            // 重新排序，将主会移到最后
+            private static List<(IBuildBag, int)> OnEnterTransportFest_OrderBy(List<(IBuildBag, int)> list)
+            {
+                ChamberCls chamberMain =  BaseInstance<ChamberMgr>.Instance.GetChamberMain(PlayerCaravan.Caravan.chamber.masterKey);
+                var mainIdx = list.FindIndex(x => x.Item1.townKey == chamberMain.townKey);
+                if (mainIdx >= 0)
+                {
+                    list.Add(list[mainIdx]);
+                    list.RemoveAt(mainIdx);
+                }
+                LogF($"OnEnterTransportFest_OrderBy {chamberMain.name} {chamberMain.townKey} idx={mainIdx} {String.Join(", ",list.Select(x=>x.Item1.townKey))}");
+                return list;
             }
         }
 
@@ -760,6 +786,18 @@ namespace WingMod
             {
                 // 打印日志
                 LogF($"CCmdTradeGood_GetTradeTown {role.name} : {String.Join(",", __result.Select(x => x.name))}");
+            }
+        }
+
+        // 清空库存
+        [HarmonyPatch(typeof(CACClearStore), "GetChamberList")]
+        public static class CACClearStore_GetChamberList
+        {
+            static void Postfix(ref List<ChamberCls> __result)
+            {
+                if (__result.Count == 1 || !settings.JobClearStoreIgnoreMain) return;
+                __result = __result.Where(x => !x.isMainChamber).ToList();
+                LogF($"清理库存 候选 {String.Join(",", __result.Select(x => x.name))}");
             }
         }
 

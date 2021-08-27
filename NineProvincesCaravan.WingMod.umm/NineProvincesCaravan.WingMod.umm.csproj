@@ -33,6 +33,10 @@
     </PropertyGroup>
     <ItemGroup>
         
+        <Reference Include="mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+          <HintPath>_game\mscorlib.dll</HintPath>
+        </Reference>
+        
         <Reference Include="System" />
         <Reference Include="System.Core" />
         <Reference Include="System.Data" />
