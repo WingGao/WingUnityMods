@@ -4,11 +4,11 @@
     <PropertyGroup>
         <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
         <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-        <ProjectGuid>{CF9878BC-D9DD-47D2-ACFC-A8042FD3B337}</ProjectGuid>
+        <ProjectGuid>{C4B77D47-FAC0-4EB3-8B1D-2787B59370F2}</ProjectGuid>
         <OutputType>Library</OutputType>
         <AppDesignerFolder>Properties</AppDesignerFolder>
-        <RootNamespace>WingUtil.Harmony</RootNamespace>
-        <AssemblyName>WingUtil.Harmony</AssemblyName>
+        <RootNamespace>WarmSnow.WingMod.umm</RootNamespace>
+        <AssemblyName>WarmSnow.WingMod.umm</AssemblyName>
         <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
         <FileAlignment>512</FileAlignment>
     </PropertyGroup>
@@ -32,14 +32,28 @@
         <WarningLevel>4</WarningLevel>
     </PropertyGroup>
     <ItemGroup>
-        <Compile Include="Extensions.UtilsIL.cs" />
-        <Compile Include="FileLogF.cs" />
-        <Compile Include="ILContext.cs" />
-        <Compile Include="ILCursor.cs" />
-        <Compile Include="ILInstruction.cs" />
-        <Compile Include="ILLabel.cs" />
-        <Compile Include="ILPatternMatchingExt.cs" />
+        <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+          <HintPath>..\..\..\Program Files (x86)\Steam\steamapps\common\WarmSnow\WarmSnow_Data\Managed\Assembly-CSharp.dll</HintPath>
+        </Reference>
+        <Reference Include="Assembly-CSharp-firstpass, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+          <HintPath>..\..\..\Program Files (x86)\Steam\steamapps\common\WarmSnow\WarmSnow_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
+        </Reference>
+        <Reference Include="System" />
+        <Reference Include="System.Core" />
+        <Reference Include="System.Data" />
+        <Reference Include="System.Xml" />
+        <Reference Include="UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+          <HintPath>..\..\..\Program Files (x86)\Steam\steamapps\common\WarmSnow\WarmSnow_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+        </Reference>
+    </ItemGroup>
+    <ItemGroup>
+        <Compile Include="Main.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
+    </ItemGroup>
+    <ItemGroup>
+      <Content Include="Info.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
     <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

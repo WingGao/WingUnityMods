@@ -38,8 +38,8 @@ namespace WingUtil.Harmony
             var inst = new ILInstruction();
             inst.Instruction = ci;
             //TODO 边界检查
-            var prev = Instructions[idx - 1];
-            var next = Instructions[idx];
+            var prev = Instructions.get_Item(idx - 1);
+            var next = Instructions.get_Item(idx);
             if (prev != null)
             {
                 prev.Next = inst;

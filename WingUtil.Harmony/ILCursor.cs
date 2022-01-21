@@ -85,7 +85,7 @@ namespace WingUtil.Harmony
         /// </summary>
         public ILInstruction Prev
         {
-            get => Next == null ? Instrs[Instrs.Count - 1] : Next.Previous;
+            get => Next == null ? Instrs.get_Item(Instrs.Count - 1) : Next.Previous;
             set => Goto(value, MoveType.After);
         }
 
@@ -262,7 +262,7 @@ namespace WingUtil.Harmony
             if (index < 0)
                 index += Instrs.Count;
 
-            return Goto(index == Instrs.Count ? null : Instrs[index], moveType, setTarget);
+            return Goto(index == Instrs.Count ? null : Instrs.get_Item(index), moveType, setTarget);
         }
 
         //
