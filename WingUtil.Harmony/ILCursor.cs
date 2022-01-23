@@ -7,6 +7,7 @@ using HarmonyLib;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using System.Reflection.Emit;
+using OpCode = System.Reflection.Emit.OpCode;
 
 // Certain paramaters are self-explanatory (f.e. predicates in Goto*), while others are not (f.e. cursors in Find*).
 #pragma warning disable CS1573 // Parameter has no matching param tag in the XML comment (but other parameters do)
@@ -85,7 +86,7 @@ namespace WingUtil.Harmony
         /// </summary>
         public ILInstruction Prev
         {
-            get => Next == null ? Instrs.get_Item(Instrs.Count - 1) : Next.Previous;
+            get => Next == null ? Instrs[Instrs.Count - 1] : Next.Previous;
             set => Goto(value, MoveType.After);
         }
 
@@ -262,7 +263,7 @@ namespace WingUtil.Harmony
             if (index < 0)
                 index += Instrs.Count;
 
-            return Goto(index == Instrs.Count ? null : Instrs.get_Item(index), moveType, setTarget);
+            return Goto(index == Instrs.Count ? null : Instrs[index], moveType, setTarget);
         }
 
         //

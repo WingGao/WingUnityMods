@@ -3,24 +3,36 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using HarmonyLib;
 using UnityEngine;
+using UnityModManagerNet;
+using WingUtil;
 
-namespace WarmSnow.WingMod.umm
+namespace WingMod
 {
     static class Main
     {
         // 配置
         public class Settings : UnityModManager.ModSettings, IDrawable
         {
-            [Header("修改")] [Draw("移动动速度（自己有效）")] public float MySpeed = 2;
+            [Header("修改")] [Draw("掉落神兵/圣物/技能最高等级")]
+            public bool DropWeaponLevel3 = true;
 
-            [Draw("基础移动速度（自己商会有效）")] public float BaseSpeed = 5;
-            [Draw("制作经验倍数")] public float MakeExpMul = 5;
-            [Draw("影响值不减")] public bool InfDecEnable = true;
+            [Draw("剑返自动触发")] public bool FlySwardAutoBack = true;
+            [Draw("剑返无冷却")] public bool FlySwardBackNoCd = true;
 
-            [Header("商会")] [Draw("产业建造忽视气候")] public bool IndustryIgnoreClimate = true;
-            [Draw("产业建造忽视种类")] public bool IndustryIgnoreMax = true;
-            [Draw("工作-清理库存不清理主会")] public bool JobClearStoreIgnoreMain = true;
+            // [Draw("飞剑冷却百分比", Max = 100, Min = 0, Precision = 0)]
+            // public float FlySwardBackCoolPer = 50;
+
+            [Draw("减伤百分比", Max = 100, Min = 0, Precision = 0)]
+            public float EnemyDamagePer = 99;
+
+            [Draw("不会死亡")] public bool DeathDisable = true;
+
+
+            [Draw("伤害倍率", Min = 1, Precision = 0)] public float DamageMultiply = 1f;
+
+            [Draw("魂不减")] public bool SoulNotDecrease = true;
 
             public void OnChange()
             {
@@ -86,6 +98,122 @@ namespace WarmSnow.WingMod.umm
             LogF("WingMod run");
         }
 
-       
+        static void LogF(string str)
+        {
+            UnityModManager.Logger.Log(str);
+        }
+
+        //圣物掉落
+        [HarmonyPatch(typeof(PotionDropPool))]
+        public static class PotionDropPool_Pop
+        {
+            [HarmonyPrefix]
+            [HarmonyPatch("Pop", new[] {typeof(PN), typeof(int), typeof(Vector3)})]
+            public static void Prefix1(ref int level)
+            {
+                if (settings.DropWeaponLevel3) level = 2; //金色
+            }
+
+            [HarmonyPrefix]
+            [HarmonyPatch("Pop", new[] {typeof(int), typeof(int), typeof(Vector3)})]
+            static void Prefix2(ref int level)
+            {
+                Prefix1(ref level);
+            }
+        }
+
+        //技能掉落
+        [HarmonyPatch(typeof(SkillDropPool), "Pop")]
+        public static class SkillDropPool_Pop
+        {
+            static void Prefix(ref bool isGolden)
+            {
+                if (settings.DropWeaponLevel3) isGolden = true;
+            }
+        }
+
+        //神兵掉落
+        [HarmonyPatch(typeof(MagicSwordPool), "Pop")]
+        public static class MagicSwordPool_Pop
+        {
+            static void Prefix(ref int level)
+            {
+                if (settings.DropWeaponLevel3) level = 3; //绝世
+            }
+        }
+
+        //神兵词条
+        [HarmonyPatch(typeof(MagicSwordControl), "RandomEntrys")]
+        public static class MagicSwordControl_RandomEntrys
+        {
+            static void Prefix(ref int level)
+            {
+                if (settings.DropWeaponLevel3) level = 3; //绝世
+            }
+        }
+
+        // 减伤
+        [HarmonyPatch(typeof(PlayerAnimControl), "DealDamage")]
+        public static class PlayerAnimControl_DealDamage
+        {
+            static void Prefix(ref float damage)
+            {
+                damage *= (100 - settings.EnemyDamagePer) / 100;
+            }
+
+            static void Postfix(PlayerAnimControl __instance)
+            {
+                if (settings.DeathDisable) __instance.playerParameter.HP = Math.Max(1f, __instance.playerParameter.HP);
+            }
+        }
+
+        // 角色控制
+        [HarmonyPatch(typeof(PlayerAnimControl))]
+        public static class PlayerAnimControlPatch
+        {
+            [HarmonyPrefix]
+            [HarmonyPatch("Souls", MethodType.Setter)]
+            static bool SoulSetterPrefix(int __0, int ___souls)
+            {
+                //魂不减
+                if (settings.SoulNotDecrease)
+                {
+                    LogF($"SoulSetterPrefix {___souls} ==> {__0}");
+                    if (__0 > 0 && __0 < ___souls) return false;
+                }
+
+                return true;
+            }
+        }
+
+        // 飞剑冷却完成
+        static bool IsFlySwardBackCdOk()
+        {
+            return PlayerAnimControl.instance.DrawCoolDownTimer >= PlayerAnimControl.instance.drawCoolDown *
+                (1.0 - (double) PlayerAnimControl.instance.playerParameter.DRAW_SWORD_CD_REDUCE);
+        }
+
+        // 怪物受伤
+        [HarmonyPatch(typeof(EnemyControl), "DealDamage")]
+        public static class EnemyControl_DealDamage
+        {
+            static void Prefix(EnemyControl __instance, ref float damage)
+            {
+                //自动剑返
+                if (settings.FlySwardAutoBack && PlayerAnimControl.instance.playerParameter.SWORDS_COUNT == 0 &&
+                    IsFlySwardBackCdOk())
+                {
+                    PlayerAnimControl.instance.ShouldDrawSword = true;
+                    // 冷却时间
+                    PlayerAnimControl.instance.DrawCoolDownTimer = 0;
+                }
+
+                // 剑返无cd
+                if (settings.FlySwardBackNoCd)
+                    PlayerAnimControl.instance.DrawCoolDownTimer = PlayerAnimControl.instance.drawCoolDown;
+                // 伤害倍率
+                damage *= settings.DamageMultiply;
+            }
+        }
     }
 }

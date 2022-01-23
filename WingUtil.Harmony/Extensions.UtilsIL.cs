@@ -4,9 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
-using MonoMod.Utils;
-using Mono.Cecil;
-using Mono.Cecil.Cil;
+using OpCode = System.Reflection.Emit.OpCode;
 
 namespace WingUtil.Harmony
 {
