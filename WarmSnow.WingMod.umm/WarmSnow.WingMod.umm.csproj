@@ -36,17 +36,17 @@
           <HintPath>..\libs\dumm\0Harmony.dll</HintPath>
         </Reference>
         <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>E:\Program Files (x86)\Steam\steamapps\common\WarmSnow\WarmSnow_Data\Managed\Assembly-CSharp.dll</HintPath>
+          <HintPath>_game\Assembly-CSharp.dll</HintPath>
         </Reference>
         <Reference Include="Assembly-CSharp-firstpass, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>E:\Program Files (x86)\Steam\steamapps\common\WarmSnow\WarmSnow_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
+          <HintPath>_game\Assembly-CSharp-firstpass.dll</HintPath>
         </Reference>
         <Reference Include="System" />
         <Reference Include="System.Core" />
         <Reference Include="System.Data" />
         <Reference Include="System.Xml" />
         <Reference Include="UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>E:\Program Files (x86)\Steam\steamapps\common\WarmSnow\WarmSnow_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+          <HintPath>_game\UnityEngine.CoreModule.dll</HintPath>
         </Reference>
         <Reference Include="UnityModManager, Version=0.24.0.50, Culture=neutral, PublicKeyToken=null">
           <HintPath>..\libs\dumm\UnityModManager.dll</HintPath>
