@@ -19,7 +19,8 @@ namespace WingUtil.Harmony
             if (argument is MethodBase member)
                 return member.FullDescription() + (extra != null ? " " + extra : "");
             if (argument is FieldInfo fieldInfo)
-                return fieldInfo.FieldType.FullDescription() + " " + fieldInfo.DeclaringType.FullDescription() + "::" + fieldInfo.Name;
+                return fieldInfo.FieldType.FullDescription() + " " + fieldInfo.DeclaringType.FullDescription() + "::" +
+                       fieldInfo.Name;
             if (type == typeof(Label))
                 return string.Format("Label{0}", (object)((Label)argument).GetHashCode());
             if (type == typeof(Label[]))
@@ -37,7 +38,8 @@ namespace WingUtil.Harmony
             instr.opcode = OpCodes.Nop;
             instr.operand = null;
         }
-        public static void Set(this CodeInstruction instr,OpCode code,object operand = null)
+
+        public static void Set(this CodeInstruction instr, OpCode code, object operand = null)
         {
             instr.opcode = code;
             instr.operand = operand;
@@ -82,6 +84,25 @@ namespace WingUtil.Harmony
             }
 
             value = default;
+            return false;
+        }
+    /// <summary>
+    ///
+    /// ldfld        class TestGameMain.ClassB TestGameMain.ClassA::FieldClass1 ==> TestGameMain.ClassA::FieldClass1 
+    /// ldfld        int32 TestGameMain.ClassB::FieldInt1  ==> TestGameMain.ClassB::FieldInt1
+    /// </summary>
+    /// <param name="instr"></param>
+    /// <param name="name">DeclaringType::Name</param>
+    /// <returns></returns>
+        public static bool MatchLdfld(this CodeInstruction instr, string name)
+        {
+            if (instr.opcode == OpCodes.Ldfld)
+            {
+                FieldInfo opr = instr.operand as FieldInfo;
+                var fName = opr.DeclaringType + "::" + opr.Name;
+                return fName == name;
+            }
+
             return false;
         }
     }

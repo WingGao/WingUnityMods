@@ -19,7 +19,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestGameMain", "TestGameMai
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestGameMain.lib.Mod.mm", "TestGameMain.lib.Mod.mm\TestGameMain.lib.Mod.mm.csproj", "{31586695-6174-420C-AC2D-D825D2494209}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestGameMain.lib", "TestGameMain.lib\TestGameMain.lib.csproj", "{B7A0FB1B-506E-4F11-A4CB-4352BBF3CFF9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestGameMain.libs", "TestGameMain.libs\TestGameMain.libs.csproj", "{B7A0FB1B-506E-4F11-A4CB-4352BBF3CFF9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NeonAbyss.WingMod.mm", "NeonAbyss.WingMod.mm\NeonAbyss.WingMod.mm.csproj", "{640FCC03-1D2F-48D6-9E04-5C23D0855290}"
 EndProject
@@ -34,6 +34,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WingUtil.Harmony", "WingUtil.Harmony\WingUtil.Harmony.csproj", "{CF9878BC-D9DD-47D2-ACFC-A8042FD3B337}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WarmSnow.WingMod.umm", "WarmSnow.WingMod.umm\WarmSnow.WingMod.umm.csproj", "{C4B77D47-FAC0-4EB3-8B1D-2787B59370F2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestGameMain.umm", "TestGameMain.umm\TestGameMain.umm.csproj", "{99368B98-F2BF-4DCD-8E6D-B7A951C96402}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -105,6 +107,10 @@ Global
 		{C4B77D47-FAC0-4EB3-8B1D-2787B59370F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C4B77D47-FAC0-4EB3-8B1D-2787B59370F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C4B77D47-FAC0-4EB3-8B1D-2787B59370F2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{99368B98-F2BF-4DCD-8E6D-B7A951C96402}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{99368B98-F2BF-4DCD-8E6D-B7A951C96402}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{99368B98-F2BF-4DCD-8E6D-B7A951C96402}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{99368B98-F2BF-4DCD-8E6D-B7A951C96402}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

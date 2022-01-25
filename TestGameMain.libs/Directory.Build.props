@@ -1,0 +1,7 @@
+﻿<Project>
+    <ItemGroup>
+        <Reference Include="0Harmony, Version=2.1.1.0, Culture=neutral, PublicKeyToken=null">
+            <HintPath>..\libs\dumm\0Harmony.dll</HintPath>
+        </Reference>
+    </ItemGroup>
+</Project>

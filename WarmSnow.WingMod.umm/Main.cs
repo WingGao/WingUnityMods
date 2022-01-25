@@ -7,47 +7,51 @@ using HarmonyLib;
 using UnityEngine;
 using UnityModManagerNet;
 using WingUtil;
+using WingUtil.Harmony;
 
 namespace WingMod
 {
+    public class Settings : UnityModManager.ModSettings, IDrawable
+    {
+        [Header("修改")] [Draw("掉落神兵/圣物/技能最高等级")]
+        public bool DropWeaponLevel3 = true;
+
+        [Draw("见闻掉落无限制")] public bool DropStoryUnlimited = true;
+        [Draw("剑返自动触发")] public bool FlySwardAutoBack = true;
+        [Draw("剑返无冷却")] public bool FlySwardBackNoCd = true;
+        [Draw("飞剑按住自动")] public bool FlySwardKeepPress = true;
+
+        // [Draw("飞剑冷却百分比", Max = 100, Min = 0, Precision = 0)]
+        // public float FlySwardBackCoolPer = 50;
+
+        [Draw("减伤百分比", Max = 100, Min = 0, Precision = 0)]
+        public float EnemyDamagePer = 99;
+
+        [Draw("不会死亡")] public bool DeathDisable = true;
+
+
+        [Draw("伤害倍率", Min = 1, Precision = 0)] public float DamageMultiply = 1f;
+
+        [Draw("魂不减")] public bool SoulNotDecrease = true;
+
+        public Settings()
+        {
+        }
+
+        public void OnChange()
+        {
+        }
+
+        public override void Save(UnityModManager.ModEntry modEntry)
+        {
+            Save(this, modEntry);
+        }
+    }
+    
     static class Main
     {
         // 配置
-        public class Settings : UnityModManager.ModSettings, IDrawable
-        {
-            [Header("修改")] [Draw("掉落神兵/圣物/技能最高等级")]
-            public bool DropWeaponLevel3 = true;
-
-            [Draw("见闻掉落无限制")] public bool DropStoryUnlimited = true;
-            [Draw("剑返自动触发")] public bool FlySwardAutoBack = true;
-            [Draw("剑返无冷却")] public bool FlySwardBackNoCd = true;
-
-            // [Draw("飞剑冷却百分比", Max = 100, Min = 0, Precision = 0)]
-            // public float FlySwardBackCoolPer = 50;
-
-            [Draw("减伤百分比", Max = 100, Min = 0, Precision = 0)]
-            public float EnemyDamagePer = 99;
-
-            [Draw("不会死亡")] public bool DeathDisable = true;
-
-
-            [Draw("伤害倍率", Min = 1, Precision = 0)] public float DamageMultiply = 1f;
-
-            [Draw("魂不减")] public bool SoulNotDecrease = true;
-
-            public Settings()
-            {
-            }
-
-            public void OnChange()
-            {
-            }
-
-            public override void Save(UnityModManager.ModEntry modEntry)
-            {
-                Save(this, modEntry);
-            }
-        }
+        
 
         public static UnityModManager.ModEntry mod;
         public static Settings settings;
@@ -107,7 +111,7 @@ namespace WingMod
 
         static void LogF(string str)
         {
-            UnityModManager.Logger.Log(str);
+            UnityModManager.Logger.Log(str, "[WingMod] ");
         }
 
         //圣物掉落
@@ -190,6 +194,43 @@ namespace WingMod
                 }
 
                 return true;
+            }
+
+            [HarmonyTranspiler]
+            [HarmonyPatch("Update")]
+            static IEnumerable<CodeInstruction> UpdateTranspiler(IEnumerable<CodeInstruction> instructions,
+                ILGenerator gen)
+            {
+                ILCursor c = new ILCursor(instructions);
+                // c.LogTo(LogF,"PlayerAnimControl.Update");
+                if (c.TryGotoNext(
+                        inst => inst.Instruction.MatchCallByName("PlayerAnimControl::CheckPlayerInputDown") &&
+                                inst.Previous.Instruction.opcode == OpCodes.Ldc_I4_1,
+                        inst => true, //any
+                        inst => true, //any
+                        inst => inst.Instruction.MatchLdfld("PlayerAnimControl::camControl")
+                    ))
+                {
+                    LogF($"UpdateTranspiler Line_{c.Index}");
+                    c.Index += 1;
+                    // c.Emit(OpCodes.Callvirt, AccessTools.Method(typeof(PlayerAnimControlPatch), "FlySwardKeepPatch"));
+                    c.Emit(OpCodes.Call, AccessTools.Method(typeof(PlayerAnimControlPatch), "FlySwardKeepPatch"));
+                    // c.Emit(OpCodes.Nop);
+                }
+
+                c.LogTo(LogF, "PlayerAnimControl.Update_Patched");
+
+                return c.Context.AsEnumerable();
+            }
+
+            //飞剑按住自动发射
+            public static bool FlySwardKeepPatch(bool a)
+            {
+                if (settings.FlySwardKeepPress)
+                    return (bool)AccessTools.Method(typeof(PlayerAnimControl), "CheckPlayerInputKeep").Invoke(
+                        PlayerAnimControl.instance,
+                        new object[] { SpecialAction.FlyingSword });
+                return a;
             }
         }
 

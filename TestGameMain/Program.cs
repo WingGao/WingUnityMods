@@ -1,4 +1,5 @@
 ﻿using System;
+using TestGameMainPatch;
 
 namespace TestGameMain
 {
@@ -6,8 +7,16 @@ namespace TestGameMain
     {
         public static void Main(string[] args)
         {
+            PatchUMM.Patch();
+
+            Run();
+        }
+
+        public static void Run()
+        {
             var a = new ClassA();
             Console.WriteLine("hello {0}", a.GetName());
+            Console.WriteLine("Call {0}", a.Print());
             Console.ReadLine();
         }
     }

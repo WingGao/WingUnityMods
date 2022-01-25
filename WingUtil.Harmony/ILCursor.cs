@@ -717,5 +717,18 @@ namespace WingUtil.Harmony
         // }
         //
         // #endregion
+        public void LogTo(Action<String> log,String tag)
+        {
+            log($"=== {tag} BEGIN ===");
+                for (int i = 0; i < Instrs.Count; i++)
+                {
+                    var v = Instrs[i];
+                    var inst = v.Instruction;
+                    log($"{i} @ {v.Instruction.ToString()}");
+                }
+                
+                log($"=== {tag} END ===");
+        }
+        
     }
 }

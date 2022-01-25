@@ -4,12 +4,12 @@
     <PropertyGroup>
         <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
         <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-        <ProjectGuid>{43EE407B-3D17-49BF-8E18-AF9B2EDC8F49}</ProjectGuid>
-        <OutputType>Exe</OutputType>
+        <ProjectGuid>{B7A0FB1B-506E-4F11-A4CB-4352BBF3CFF9}</ProjectGuid>
+        <OutputType>Library</OutputType>
         <AppDesignerFolder>Properties</AppDesignerFolder>
-        <RootNamespace>TestGameMain</RootNamespace>
-        <AssemblyName>TestGameMain</AssemblyName>
-        <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+        <RootNamespace>TestGameMain.lib</RootNamespace>
+        <AssemblyName>TestGameMain.libs</AssemblyName>
+        <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
         <FileAlignment>512</FileAlignment>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -38,19 +38,10 @@
         <Reference Include="System.Xml" />
     </ItemGroup>
     <ItemGroup>
-        <Compile Include="PatchUMM.cs" />
-        <Compile Include="Program.cs" />
+        <Compile Include="ClassA.cs" />
+        <Compile Include="ClassB.cs" />
+        <Compile Include="ClassC.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
-    </ItemGroup>
-    <ItemGroup>
-      <ProjectReference Include="..\TestGameMain.libs\TestGameMain.libs.csproj">
-        <Project>{b7a0fb1b-506e-4f11-a4cb-4352bbf3cff9}</Project>
-        <Name>TestGameMain.libs</Name>
-      </ProjectReference>
-      <ProjectReference Include="..\WingUtil.Harmony\WingUtil.Harmony.csproj">
-        <Project>{cf9878bc-d9dd-47d2-acfc-a8042fd3b337}</Project>
-        <Name>WingUtil.Harmony</Name>
-      </ProjectReference>
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
     <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

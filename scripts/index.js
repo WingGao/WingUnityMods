@@ -5,6 +5,14 @@ const _ = require('lodash');
 const cpy = require('cpy');
 const execa = require('execa');
 const iconv = require('iconv-lite');
+const yargs = require('yargs/yargs')
+const { hideBin } = require('yargs/helpers')
+/**
+ * 参数
+ * -g 游戏的gameDir
+ * -s 是否启动游戏
+ */
+const argv = yargs(hideBin(process.argv)).argv
 
 const logger = log4js.getLogger();
 logger.level = 'debug';
@@ -15,6 +23,14 @@ const SteamGameDirs = [
   'D:\\Projs\\UnityDemo1\\Temp',
 ]
 const ModConfigs = [
+  {
+    steamId: 1296830,
+    name: '暖雪',
+    gameDir: 'WarmSnow',
+    modProjectName: 'WarmSnow.WingMod.umm',
+    ummTargetDir: 'Mods\\WingMod',
+    ummCreateDir: false //是否创建上级目录
+  },
   {
     steamId: 908100,
     name: '九州商旅',
@@ -44,8 +60,8 @@ const ModLibs = [
   '0Harmony.dll', 'websocket-sharp.dll'
 ]
 const MsBuildBin = [
-  'd:\\Program Files\\Microsoft Visual Studio\\2022\\Preview\\MSBuild\\Current\\Bin\\MSBuild.exe',
-  'e:\\Program Files\\Microsoft Visual Studio\\2022\\Preview\\MSBuild\\Current\\Bin\\MSBuild.exe'
+  'd:\\Program Files\\Microsoft Visual Studio\\2022\\Professional\\MSBuild\\Current\\Bin\\MSBuild.exe',
+  'e:\\Program Files\\Microsoft Visual Studio\\2022\\Professional\\MSBuild\\Current\\Bin\\MSBuild.exe'
 ].find(v => fs.existsSync(v))
 const SteamBin = SteamGameDirs.map(v => path.resolve(v, '../../steam.exe')).find(v => fs.existsSync(v))
 
@@ -169,7 +185,7 @@ async function buildProject(cnf) {
 }
 
 async function main() {
-  let selectedMod = ModConfigs[0]
+  let selectedMod = _.find(ModConfigs,v=>v.gameDir == argv.g)
   logger.info('当前游戏', selectedMod.name)
   currentGameConfig = buildGameConfig(selectedMod)
   await buildProject(currentGameConfig)
@@ -180,7 +196,7 @@ async function main() {
   } else { // UnityModManger
     await copyWingMod_UMM(currentGameConfig)
   }
-  if (currentGameConfig.steamId) {
+  if (argv.s && currentGameConfig.steamId) {
     // let steamUrl = 'steam://rungameid/908100'
     let steamUrl = `steam://rungameid/${currentGameConfig.steamId}`
     await execa(SteamBin, [steamUrl])
