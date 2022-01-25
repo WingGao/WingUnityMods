@@ -17,6 +17,7 @@ namespace WingMod
         public bool DropWeaponLevel3 = true;
 
         [Draw("见闻掉落无限制")] public bool DropStoryUnlimited = true;
+        [Draw("毒宗碎片增加")] public bool DuPopEnable = true;
         [Draw("剑返自动触发")] public bool FlySwardAutoBack = true;
         [Draw("剑返无冷却")] public bool FlySwardBackNoCd = true;
         [Draw("飞剑按住自动")] public bool FlySwardKeepPress = true;
@@ -189,7 +190,7 @@ namespace WingMod
                 //魂不减
                 if (settings.SoulNotDecrease)
                 {
-                    LogF($"SoulSetterPrefix {___souls} ==> {__0}");
+                    // LogF($"SoulSetterPrefix {___souls} ==> {__0}");
                     if (__0 > 0 && __0 < ___souls) return false;
                 }
 
@@ -218,7 +219,7 @@ namespace WingMod
                     // c.Emit(OpCodes.Nop);
                 }
 
-                c.LogTo(LogF, "PlayerAnimControl.Update_Patched");
+                // c.LogTo(LogF, "PlayerAnimControl.Update_Patched");
 
                 return c.Context.AsEnumerable();
             }
@@ -304,6 +305,19 @@ namespace WingMod
             static void OnDisablePrefix(EnemyControl __instance)
             {
                 patchedMonster.Remove(__instance); //移除patch标记
+            }
+        }
+
+        [HarmonyPatch(typeof(TheBookOfAbyssControl), "Start")]
+        public static class TheBookOfAbyssControlPatch
+        {
+            static void Postfix(TheBookOfAbyssControl __instance)
+            {
+                if (settings.DuPopEnable)
+                {
+                    __instance.isLil = true;
+                    LogF($"发现 TheBookOfAbyssControl {__instance.GetHashCode()}");
+                }
             }
         }
     }
