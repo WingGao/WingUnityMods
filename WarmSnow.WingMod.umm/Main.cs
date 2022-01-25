@@ -311,13 +311,26 @@ namespace WingMod
         [HarmonyPatch(typeof(TheBookOfAbyssControl), "Start")]
         public static class TheBookOfAbyssControlPatch
         {
-            static void Postfix(TheBookOfAbyssControl __instance)
+            // static void Prefix(TheBookOfAbyssControl __instance)
+            static void Postfix(TheBookOfAbyssControl __instance,EnemyControl ___enemyControl)
             {
                 if (settings.DuPopEnable)
                 {
-                    __instance.isLil = true;
-                    LogF($"发现 TheBookOfAbyssControl {__instance.GetHashCode()}");
+                    // __instance.isLil = true;
+                    LogF($"发现 TheBookOfAbyssControl MonsterID={___enemyControl.MonsterID} {UnityHelper.FmtAllComponents(__instance)}");
                 }
+            }
+        }
+        
+        // 地图控制
+        [HarmonyPatch(typeof(StageControl), "Start")]
+        public static class StageControlPatch
+        {
+            static void Postfix(StageControl __instance,int ___mapConfigSceneID)
+            {
+                var mapConfig = XML_Loader.instance.mapConfigs[___mapConfigSceneID];
+                LogF($"当前地图 {mapConfig.MapNameCHS} mapConfigSceneID={___mapConfigSceneID} stageMapId={__instance.stageMapId} " +
+                     $"sceneLevel={__instance.sceneLevel}");
             }
         }
     }

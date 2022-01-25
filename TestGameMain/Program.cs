@@ -1,4 +1,5 @@
 ﻿using System;
+using TestGameMain.GameSingle;
 using TestGameMainPatch;
 
 namespace TestGameMain
@@ -14,6 +15,7 @@ namespace TestGameMain
 
         public static void Run()
         {
+            WarmSnowHelper.DecryptXMLs();
             var a = new ClassA();
             Console.WriteLine("hello {0}", a.GetName());
             Console.WriteLine("Call {0}", a.Print());
