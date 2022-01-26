@@ -35,8 +35,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WingUtil.Harmony", "WingUti
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WarmSnow.WingMod.umm", "WarmSnow.WingMod.umm\WarmSnow.WingMod.umm.csproj", "{C4B77D47-FAC0-4EB3-8B1D-2787B59370F2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestGameMain.umm", "TestGameMain.umm\TestGameMain.umm.csproj", "{99368B98-F2BF-4DCD-8E6D-B7A951C96402}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -107,10 +105,6 @@ Global
 		{C4B77D47-FAC0-4EB3-8B1D-2787B59370F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C4B77D47-FAC0-4EB3-8B1D-2787B59370F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C4B77D47-FAC0-4EB3-8B1D-2787B59370F2}.Release|Any CPU.Build.0 = Release|Any CPU
-		{99368B98-F2BF-4DCD-8E6D-B7A951C96402}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{99368B98-F2BF-4DCD-8E6D-B7A951C96402}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{99368B98-F2BF-4DCD-8E6D-B7A951C96402}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{99368B98-F2BF-4DCD-8E6D-B7A951C96402}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

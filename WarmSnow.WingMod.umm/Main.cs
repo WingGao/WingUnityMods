@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -8,6 +9,8 @@ using UnityEngine;
 using UnityModManagerNet;
 using WingUtil;
 using WingUtil.Harmony;
+using Debug = UnityEngine.Debug;
+using Object = UnityEngine.Object;
 
 namespace WingMod
 {
@@ -35,10 +38,6 @@ namespace WingMod
 
         [Draw("魂不减")] public bool SoulNotDecrease = true;
 
-        public Settings()
-        {
-        }
-
         public void OnChange()
         {
         }
@@ -48,15 +47,17 @@ namespace WingMod
             Save(this, modEntry);
         }
     }
-    
+
     static class Main
     {
-        // 配置
-        
+        #region 通用配置
 
         public static UnityModManager.ModEntry mod;
+
+        // 配置
         public static Settings settings;
-        private static bool IsKeyShiftHeld = false;
+
+        public static bool Enable => mod.Enabled;
 
 
         static void Load(UnityModManager.ModEntry modEntry)
@@ -67,10 +68,10 @@ namespace WingMod
             FileLog.Reset();
             WingLog.Reset();
 
-            var harmony = new Harmony(modEntry.Info.Id);
+            mod = modEntry;
+            var harmony = new Harmony(mod.Info.Id);
             harmony.PatchAll(Assembly.GetExecutingAssembly());
 
-            mod = modEntry;
             modEntry.OnToggle = OnToggle;
             modEntry.OnGUI = OnGUI;
             modEntry.OnSaveGUI = OnSaveGUI;
@@ -93,10 +94,9 @@ namespace WingMod
             }
             else
             {
-                // Stop(); // Perform all necessary steps to stop mod.
+                Stop(); // Perform all necessary steps to stop mod.
             }
 
-            // enabled = value;
             return true; // If true, the mod will switch the state. If not, the state will not change.
         }
 
@@ -110,10 +110,63 @@ namespace WingMod
             LogF("WingMod run");
         }
 
+        static void Stop()
+        {
+            LogF("WingMod Stop");
+        }
+
         static void LogF(string str)
         {
             UnityModManager.Logger.Log(str, "[WingMod] ");
         }
+
+        [HarmonyPatch(typeof(Debug))]
+        public static class UnityDebugPatch
+        {
+            private static ILogger MyLogger => new Logger(new MyDebugLogHandler());
+
+            [HarmonyPostfix]
+            [HarmonyPatch("unityLogger", MethodType.Getter)]
+            public static void LogGet(ref ILogger __result, ref ILogger ___s_DefaultLogger, ref ILogger ___s_Logger)
+            {
+                ___s_DefaultLogger = MyLogger;
+                ___s_Logger = MyLogger;
+                __result = MyLogger;
+            }
+
+            [HarmonyPostfix]
+            [HarmonyPatch("IsLoggingEnabled")]
+            public static void IsLoggingEnabledGet(ref bool __result)
+            {
+                __result = true;
+            }
+
+            class MyDebugLogHandler : ILogHandler
+            {
+                public void LogFormat(LogType logType, Object context, string format, params object[] args)
+                {
+                    // StackTrace st = new StackTrace(3, true);
+                    /**
+                     *  at UnityEngine.Logger.Log (UnityEngine.LogType logType, System.Object message) [0x00000] in <3d993dea89b649118f5e3c1a995c56fc>:0  skip2
+  at UnityEngine.Debug.Log (System.Object message) [0x00000] in <3d993dea89b649118f5e3c1a995c56fc>:0 skip3
+  at PlayerPrefControl.StartFromBegining () [0x00000] in <a311cad17a3041fba8282ec312c03a2e>:0 
+  at StageControl.StageControl.Start_Patch1 (StageControl ) [0x00000] in <a311cad17a3041fba8282ec312c03a2e>:0  InitObjs!8.762533
+                     */
+                    StackFrame callStack = new StackFrame(3, true);
+                    UnityModManager.Logger.Log(String.Format(format, args),
+                        $"[{logType}] [{WingLog.GetStackFrame(4)}] ");
+                }
+
+                public void LogException(Exception exception, Object context)
+                {
+                    // throw new NotImplementedException();
+                }
+            }
+        }
+
+        #endregion
+
+        #region 该游戏的修改
 
         //圣物掉落
         [HarmonyPatch(typeof(PotionDropPool))]
@@ -123,7 +176,7 @@ namespace WingMod
             [HarmonyPatch("Pop", new[] { typeof(PN), typeof(int), typeof(Vector3) })]
             public static void Prefix1(ref int level)
             {
-                if (settings.DropWeaponLevel3) level = 2; //金色
+                if (mod.Active && settings.DropWeaponLevel3) level = 2; //金色
             }
 
             [HarmonyPrefix]
@@ -140,7 +193,7 @@ namespace WingMod
         {
             static void Prefix(ref bool isGolden)
             {
-                if (settings.DropWeaponLevel3) isGolden = true;
+                if (mod.Active && settings.DropWeaponLevel3) isGolden = true;
             }
         }
 
@@ -150,7 +203,7 @@ namespace WingMod
         {
             static void Prefix(ref int level)
             {
-                if (settings.DropWeaponLevel3) level = 3; //绝世
+                if (mod.Active && settings.DropWeaponLevel3) level = 3; //绝世
             }
         }
 
@@ -160,7 +213,7 @@ namespace WingMod
         {
             static void Prefix(ref int level)
             {
-                if (settings.DropWeaponLevel3) level = 3; //绝世
+                if (mod.Active && settings.DropWeaponLevel3) level = 3; //绝世
             }
         }
 
@@ -170,12 +223,13 @@ namespace WingMod
         {
             static void Prefix(ref float damage)
             {
-                damage *= (100 - settings.EnemyDamagePer) / 100;
+                if (mod.Active) damage *= (100 - settings.EnemyDamagePer) / 100;
             }
 
             static void Postfix(PlayerAnimControl __instance)
             {
-                if (settings.DeathDisable) __instance.playerParameter.HP = Math.Max(1f, __instance.playerParameter.HP);
+                if (mod.Active && settings.DeathDisable)
+                    __instance.playerParameter.HP = Math.Max(1f, __instance.playerParameter.HP);
             }
         }
 
@@ -188,7 +242,7 @@ namespace WingMod
             static bool SoulSetterPrefix(int __0, int ___souls)
             {
                 //魂不减
-                if (settings.SoulNotDecrease)
+                if (mod.Active && settings.SoulNotDecrease)
                 {
                     // LogF($"SoulSetterPrefix {___souls} ==> {__0}");
                     if (__0 > 0 && __0 < ___souls) return false;
@@ -227,7 +281,7 @@ namespace WingMod
             //飞剑按住自动发射
             public static bool FlySwardKeepPatch(bool a)
             {
-                if (settings.FlySwardKeepPress)
+                if (mod.Active && settings.FlySwardKeepPress)
                     return (bool)AccessTools.Method(typeof(PlayerAnimControl), "CheckPlayerInputKeep").Invoke(
                         PlayerAnimControl.instance,
                         new object[] { SpecialAction.FlyingSword });
@@ -261,7 +315,8 @@ namespace WingMod
             static void DealDamagePrefix(EnemyControl __instance, ref float damage)
             {
                 //自动剑返
-                if (settings.FlySwardAutoBack && PlayerAnimControl.instance.playerParameter.SWORDS_COUNT == 0 &&
+                if (mod.Active && settings.FlySwardAutoBack &&
+                    PlayerAnimControl.instance.playerParameter.SWORDS_COUNT == 0 &&
                     IsFlySwardBackCdOk())
                 {
                     PlayerAnimControl.instance.ShouldDrawSword = true;
@@ -270,10 +325,10 @@ namespace WingMod
                 }
 
                 // 剑返无cd
-                if (settings.FlySwardBackNoCd)
+                if (mod.Active && settings.FlySwardBackNoCd)
                     PlayerAnimControl.instance.DrawCoolDownTimer = PlayerAnimControl.instance.drawCoolDown;
                 // 伤害倍率
-                damage *= settings.DamageMultiply;
+                if (mod.Active) damage *= settings.DamageMultiply;
             }
 
             // 修改过的
@@ -284,7 +339,7 @@ namespace WingMod
             [HarmonyPatch("Drop")]
             static void DropPrefix(EnemyControl __instance)
             {
-                if (settings.DropStoryUnlimited && __instance.storyChipDropProb != null)
+                if (mod.Active && settings.DropStoryUnlimited && __instance.storyChipDropProb != null)
                 {
                     if (!patchedMonster.Contains(__instance))
                     {
@@ -312,26 +367,28 @@ namespace WingMod
         public static class TheBookOfAbyssControlPatch
         {
             // static void Prefix(TheBookOfAbyssControl __instance)
-            static void Postfix(TheBookOfAbyssControl __instance,EnemyControl ___enemyControl)
+            static void Postfix(TheBookOfAbyssControl __instance, EnemyControl ___enemyControl)
             {
-                if (settings.DuPopEnable)
+                if (mod.Active && settings.DuPopEnable)
                 {
                     // __instance.isLil = true;
                     LogF($"发现 TheBookOfAbyssControl MonsterID={___enemyControl.MonsterID} {UnityHelper.FmtAllComponents(__instance)}");
                 }
             }
         }
-        
+
         // 地图控制
         [HarmonyPatch(typeof(StageControl), "Start")]
         public static class StageControlPatch
         {
-            static void Postfix(StageControl __instance,int ___mapConfigSceneID)
+            static void Postfix(StageControl __instance, int ___mapConfigSceneID)
             {
                 var mapConfig = XML_Loader.instance.mapConfigs[___mapConfigSceneID];
                 LogF($"当前地图 {mapConfig.MapNameCHS} mapConfigSceneID={___mapConfigSceneID} stageMapId={__instance.stageMapId} " +
                      $"sceneLevel={__instance.sceneLevel}");
             }
         }
+
+        #endregion
     }
 }
