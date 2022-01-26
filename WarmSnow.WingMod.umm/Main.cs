@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Text;
 using HarmonyLib;
 using UnityEngine;
 using UnityModManagerNet;
@@ -38,13 +39,20 @@ namespace WingMod
 
         [Draw("魂不减")] public bool SoulNotDecrease = true;
 
-        public void OnChange()
+        [Draw("神兵-下次掉落")] public MagicSwordName MagicSwordNextDrop;
+
+        public void OnInit()
         {
+            MagicSwordNextDrop = MagicSwordName.None;
         }
 
         public override void Save(UnityModManager.ModEntry modEntry)
         {
             Save(this, modEntry);
+        }
+
+        public void OnChange()
+        {
         }
     }
 
@@ -60,9 +68,15 @@ namespace WingMod
         public static bool Enable => mod.Enabled;
 
 
+        /// <summary>
+        /// 加载
+        /// https://wiki.nexusmods.com/index.php/Category:Unity_Mod_Manager
+        /// </summary>
+        /// <param name="modEntry"></param>
         static void Load(UnityModManager.ModEntry modEntry)
         {
             settings = UnityModManager.ModSettings.Load<Settings>(modEntry);
+            settings.OnInit();
 
             Harmony.DEBUG = true;
             FileLog.Reset();
@@ -75,6 +89,7 @@ namespace WingMod
             modEntry.OnToggle = OnToggle;
             modEntry.OnGUI = OnGUI;
             modEntry.OnSaveGUI = OnSaveGUI;
+            modEntry.OnShowGUI = OnShowGUI;
 
             EnemyControlPatch.Init();
 
@@ -84,6 +99,24 @@ namespace WingMod
         static void OnGUI(UnityModManager.ModEntry modEntry)
         {
             settings.Draw(modEntry);
+            // GUILayout.BeginVertical();
+            // var magIdx = 0;
+            // var magCol = 5;
+            // foreach (var magicSwordName in Enum.GetValues(typeof(MagicSwordName)).Cast<MagicSwordName>())
+            // {
+            //     if (magIdx == 0) GUILayout.BeginHorizontal(GUILayout.ExpandWidth(false));
+            //     GUILayout.Label(magicSwordName.ToString(), GUILayout.ExpandWidth(true));
+            //     magIdx++;
+            //     if (magIdx <= magCol)
+            //     {
+            //         GUILayout.EndHorizontal();
+            //         magIdx = 0;
+            //     }
+            // }
+            //
+            // if (magIdx > 0) GUILayout.EndHorizontal();
+            //
+            // GUILayout.EndVertical();
         }
 
         static bool OnToggle(UnityModManager.ModEntry modEntry, bool value /* active or inactive */)
@@ -168,19 +201,42 @@ namespace WingMod
 
         #region 该游戏的修改
 
+        public static void OnShowGUI(UnityModManager.ModEntry modEntry)
+        {
+            LogF("OnShowGUI");
+            LogMagicSwardUse();
+        }
+
+        // 打印神兵使用情况
+        static void LogMagicSwardUse()
+        {
+            if (GlobalParameter.instance == null) return;
+            StringBuilder sb = new StringBuilder();
+            sb.Append("神兵使用： ");
+            foreach (var magicSwordName in Enum.GetValues(typeof(MagicSwordName)).Cast<MagicSwordName>())
+            {
+                if (magicSwordName == MagicSwordName.None) continue;
+                var mg = new MagicSword();
+                mg.magicSwordName = magicSwordName;
+                sb.Append($"{TextControl.instance.MagicSwordInfo(mg)[0]}={GlobalParameter.instance.MagicSwordUsed[(int) (magicSwordName - 1)]}; ");
+            }
+
+            LogF(sb.ToString());
+        }
+
         //圣物掉落
         [HarmonyPatch(typeof(PotionDropPool))]
         public static class PotionDropPool_Pop
         {
             [HarmonyPrefix]
-            [HarmonyPatch("Pop", new[] { typeof(PN), typeof(int), typeof(Vector3) })]
+            [HarmonyPatch("Pop", new[] {typeof(PN), typeof(int), typeof(Vector3)})]
             public static void Prefix1(ref int level)
             {
                 if (mod.Active && settings.DropWeaponLevel3) level = 2; //金色
             }
 
             [HarmonyPrefix]
-            [HarmonyPatch("Pop", new[] { typeof(int), typeof(int), typeof(Vector3) })]
+            [HarmonyPatch("Pop", new[] {typeof(int), typeof(int), typeof(Vector3)})]
             static void Prefix2(ref int level)
             {
                 Prefix1(ref level);
@@ -198,12 +254,26 @@ namespace WingMod
         }
 
         //神兵掉落
-        [HarmonyPatch(typeof(MagicSwordPool), "Pop")]
-        public static class MagicSwordPool_Pop
+        [HarmonyPatch(typeof(MagicSwordPool))]
+        public static class MagicSwordPoolPatch
         {
+            [HarmonyPrefix]
+            [HarmonyPatch("Pop")]
             static void Prefix(ref int level)
             {
                 if (mod.Active && settings.DropWeaponLevel3) level = 3; //绝世
+            }
+
+            // 修改掉落ID
+            [HarmonyPostfix]
+            [HarmonyPatch("ID")]
+            static void IDPost(ref int __result)
+            {
+                if (mod.Active && settings.MagicSwordNextDrop != MagicSwordName.None)
+                {
+                    __result = (int) settings.MagicSwordNextDrop;
+                    settings.MagicSwordNextDrop = MagicSwordName.None; //一次性指令
+                }
             }
         }
 
@@ -300,9 +370,9 @@ namespace WingMod
             public static bool FlySwardKeepPatch(bool a)
             {
                 if (mod.Active && settings.FlySwardKeepPress)
-                    return (bool)AccessTools.Method(typeof(PlayerAnimControl), "CheckPlayerInputKeep").Invoke(
+                    return (bool) AccessTools.Method(typeof(PlayerAnimControl), "CheckPlayerInputKeep").Invoke(
                         PlayerAnimControl.instance,
-                        new object[] { SpecialAction.FlyingSword });
+                        new object[] {SpecialAction.FlyingSword});
                 return a;
             }
         }
@@ -311,7 +381,7 @@ namespace WingMod
         static bool IsFlySwardBackCdOk()
         {
             return PlayerAnimControl.instance.DrawCoolDownTimer >= PlayerAnimControl.instance.drawCoolDown *
-                (1.0 - (double)PlayerAnimControl.instance.playerParameter.DRAW_SWORD_CD_REDUCE);
+                (1.0 - (double) PlayerAnimControl.instance.playerParameter.DRAW_SWORD_CD_REDUCE);
         }
 
         // 怪物受伤
@@ -390,7 +460,8 @@ namespace WingMod
                 if (mod.Active && settings.DuPopEnable)
                 {
                     // __instance.isLil = true;
-                    LogF($"发现 TheBookOfAbyssControl MonsterID={___enemyControl.MonsterID} {UnityHelper.FmtAllComponents(__instance)}");
+                    LogF(
+                        $"发现 TheBookOfAbyssControl MonsterID={___enemyControl.MonsterID} {UnityHelper.FmtAllComponents(__instance)}");
                 }
             }
         }
@@ -402,8 +473,9 @@ namespace WingMod
             static void Postfix(StageControl __instance, int ___mapConfigSceneID)
             {
                 var mapConfig = XML_Loader.instance.mapConfigs[___mapConfigSceneID];
-                LogF($"当前地图 {mapConfig.MapNameCHS} mapConfigSceneID={___mapConfigSceneID} stageMapId={__instance.stageMapId} " +
-                     $"sceneLevel={__instance.sceneLevel}");
+                LogF(
+                    $"当前地图 {mapConfig.MapNameCHS} mapConfigSceneID={___mapConfigSceneID} stageMapId={__instance.stageMapId} " +
+                    $"sceneLevel={__instance.sceneLevel}");
             }
         }
 
