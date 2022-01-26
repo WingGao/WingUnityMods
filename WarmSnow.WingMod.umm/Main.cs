@@ -257,7 +257,25 @@ namespace WingMod
                 ILGenerator gen)
             {
                 ILCursor c = new ILCursor(instructions);
-                // c.LogTo(LogF,"PlayerAnimControl.Update");
+                /**
+                 * 2022年1月26日19:39:26
+                 * else if (this.CheckPlayerInputDown(SpecialAction.FlyingSword) && this.camControl.CanManipulate && !this.camControl.CanOnlyMove && !this.BERSERK_SKILL_ShadowStrike && !this.FROZENMASTER_SKILL_HoarFrost)
+		{
+			if (this.THUNDERGOD_SKILL_ThunderDash)
+			{
+				this.shootCoolDownTimer = 0f;
+				this.startDash = true;
+				return;
+			}
+			if (this.shootCoolDownTimer >= this.shootCoolDownTime)
+			{
+				this.shootCoolDownTimer = 0f;
+				this.NormalShoot(this.mousePoint, false, 0f, false);
+				return;
+			}
+			this.shootCoolDownTimer += Time.deltaTime;
+		}
+                 */
                 if (c.TryGotoNext(
                         inst => inst.Instruction.MatchCallByName("PlayerAnimControl::CheckPlayerInputDown") &&
                                 inst.Previous.Instruction.opcode == OpCodes.Ldc_I4_1,
