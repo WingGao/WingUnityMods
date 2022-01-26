@@ -159,7 +159,7 @@ namespace WingMod
 
                 public void LogException(Exception exception, Object context)
                 {
-                    // throw new NotImplementedException();
+                    UnityModManager.Logger.LogException(" ", exception, "[Error]");
                 }
             }
         }
