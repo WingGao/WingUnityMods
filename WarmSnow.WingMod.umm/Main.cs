@@ -21,6 +21,7 @@ namespace WingMod
         public bool DropWeaponLevel3 = true;
 
         [Draw("见闻掉落无限制")] public bool DropStoryUnlimited = true;
+        [Draw("必出书怪")] public bool ShuguaiEnable = false;
         [Draw("毒宗碎片增加")] public bool DuPopEnable = true;
         [Draw("剑返自动触发")] public bool FlySwardAutoBack = true;
         [Draw("剑返无冷却")] public bool FlySwardBackNoCd = true;
@@ -40,6 +41,7 @@ namespace WingMod
         [Draw("魂不减")] public bool SoulNotDecrease = true;
 
         [Draw("神兵-下次掉落")] public MagicSwordName MagicSwordNextDrop;
+        [Draw("打印Error")] public bool LogError = false;
 
         public void OnInit()
         {
@@ -192,7 +194,7 @@ namespace WingMod
 
                 public void LogException(Exception exception, Object context)
                 {
-                    UnityModManager.Logger.LogException(" ", exception, "[Error]");
+                    if (mod.Active && settings.LogError) UnityModManager.Logger.LogException(" ", exception, "[Error]");
                 }
             }
         }
@@ -200,6 +202,9 @@ namespace WingMod
         #endregion
 
         #region 该游戏的修改
+
+        // 书怪地图
+        private static List<int> BookOfAbyssMapConfigIds = new List<int>() { 81, 83, 96, 232, 268, 273, 279, 304, 305 };
 
         public static void OnShowGUI(UnityModManager.ModEntry modEntry)
         {
@@ -218,7 +223,7 @@ namespace WingMod
                 if (magicSwordName == MagicSwordName.None) continue;
                 var mg = new MagicSword();
                 mg.magicSwordName = magicSwordName;
-                sb.Append($"{TextControl.instance.MagicSwordInfo(mg)[0]}={GlobalParameter.instance.MagicSwordUsed[(int) (magicSwordName - 1)]}; ");
+                sb.Append($"{TextControl.instance.MagicSwordInfo(mg)[0]}={GlobalParameter.instance.MagicSwordUsed[(int)(magicSwordName - 1)]}; ");
             }
 
             LogF(sb.ToString());
@@ -229,14 +234,14 @@ namespace WingMod
         public static class PotionDropPool_Pop
         {
             [HarmonyPrefix]
-            [HarmonyPatch("Pop", new[] {typeof(PN), typeof(int), typeof(Vector3)})]
+            [HarmonyPatch("Pop", new[] { typeof(PN), typeof(int), typeof(Vector3) })]
             public static void Prefix1(ref int level)
             {
                 if (mod.Active && settings.DropWeaponLevel3) level = 2; //金色
             }
 
             [HarmonyPrefix]
-            [HarmonyPatch("Pop", new[] {typeof(int), typeof(int), typeof(Vector3)})]
+            [HarmonyPatch("Pop", new[] { typeof(int), typeof(int), typeof(Vector3) })]
             static void Prefix2(ref int level)
             {
                 Prefix1(ref level);
@@ -271,7 +276,7 @@ namespace WingMod
             {
                 if (mod.Active && settings.MagicSwordNextDrop != MagicSwordName.None)
                 {
-                    __result = (int) settings.MagicSwordNextDrop;
+                    __result = (int)settings.MagicSwordNextDrop;
                     settings.MagicSwordNextDrop = MagicSwordName.None; //一次性指令
                 }
             }
@@ -370,9 +375,9 @@ namespace WingMod
             public static bool FlySwardKeepPatch(bool a)
             {
                 if (mod.Active && settings.FlySwardKeepPress)
-                    return (bool) AccessTools.Method(typeof(PlayerAnimControl), "CheckPlayerInputKeep").Invoke(
+                    return (bool)AccessTools.Method(typeof(PlayerAnimControl), "CheckPlayerInputKeep").Invoke(
                         PlayerAnimControl.instance,
-                        new object[] {SpecialAction.FlyingSword});
+                        new object[] { SpecialAction.FlyingSword });
                 return a;
             }
         }
@@ -381,7 +386,7 @@ namespace WingMod
         static bool IsFlySwardBackCdOk()
         {
             return PlayerAnimControl.instance.DrawCoolDownTimer >= PlayerAnimControl.instance.drawCoolDown *
-                (1.0 - (double) PlayerAnimControl.instance.playerParameter.DRAW_SWORD_CD_REDUCE);
+                (1.0 - (double)PlayerAnimControl.instance.playerParameter.DRAW_SWORD_CD_REDUCE);
         }
 
         // 怪物受伤
@@ -473,10 +478,91 @@ namespace WingMod
             static void Postfix(StageControl __instance, int ___mapConfigSceneID)
             {
                 var mapConfig = XML_Loader.instance.mapConfigs[___mapConfigSceneID];
-                LogF(
-                    $"当前地图 {mapConfig.MapNameCHS} mapConfigSceneID={___mapConfigSceneID} stageMapId={__instance.stageMapId} " +
-                    $"sceneLevel={__instance.sceneLevel}");
+                LogF($"当前地图 {mapConfig.MapNameCHS} mapConfigSceneID={___mapConfigSceneID} stageMapId={__instance.stageMapId} " +
+                     $"sceneLevel={__instance.sceneLevel} LevelLoad.Count={LevelLoad.instances.Count}");
+                LevelLoad.instances.Select((s, i) =>
+                {
+                    LogF($"LevelLoad_{i} sceneIndex={JSONWriter.ToJson(s.sceneIndex)}");
+                    return i;
+                }).ToList().ToString();
             }
+        }
+
+        [HarmonyPatch(typeof(LevelLoad), "Load")]
+        public static class LevelLoadPatch
+        {
+            static void Prefix(LevelLoad __instance, ref int ___index)
+            {
+                if (mod.Active && settings.ShuguaiEnable)
+                {
+                    // 判断是否存在书怪地图
+                    var sIdList = __instance.sceneIndex.ToList();
+                    var sId = sIdList.FirstOrDefault(v => BookOfAbyssMapConfigIds.Contains(GetMapConfigId(__instance.sceneLevel, v)));
+                    if (sId > 0)
+                    {
+                        var mapConfig = XML_Loader.instance.mapConfigs[GetMapConfigId(__instance.sceneLevel, sId)];
+                        LogF($"找到书怪地图 mapId={sId} {mapConfig.MapNameCHS}");
+                        ___index = sIdList.IndexOf(sId);
+                    }
+                }
+            }
+        }
+
+        static int GetSceneBuildIndex(SceneLevel leve, int mapId)
+        {
+            var sceneBuildIndex = mapId;
+            switch (leve)
+            {
+                case SceneLevel.stage1:
+                    sceneBuildIndex += 8;
+                    break;
+                case SceneLevel.stage2:
+                    sceneBuildIndex += 93;
+                    break;
+                case SceneLevel.stage3:
+                    sceneBuildIndex += 249;
+                    break;
+                case SceneLevel.stage4:
+                    sceneBuildIndex += 269;
+                    break;
+                case SceneLevel.stage5:
+                    sceneBuildIndex += 293;
+                    break;
+                case SceneLevel.stage6:
+                    sceneBuildIndex += 314;
+                    break;
+            }
+
+            return sceneBuildIndex;
+        }
+
+        // StageControl.Awake
+        static int GetMapConfigId(SceneLevel level, int mapId)
+        {
+            var mapConfigSceneID = mapId;
+            switch (level)
+            {
+                case SceneLevel.stage1:
+                    mapConfigSceneID = mapConfigSceneID;
+                    break;
+                case SceneLevel.stage2:
+                    mapConfigSceneID += 85;
+                    break;
+                case SceneLevel.stage3:
+                    mapConfigSceneID += 241;
+                    break;
+                case SceneLevel.stage4:
+                    mapConfigSceneID += 261;
+                    break;
+                case SceneLevel.stage5:
+                    mapConfigSceneID += 285;
+                    break;
+                case SceneLevel.stage6:
+                    mapConfigSceneID += 306;
+                    break;
+            }
+
+            return mapConfigSceneID;
         }
 
         #endregion

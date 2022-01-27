@@ -22,8 +22,8 @@ namespace TestGameMain.GameSingle
 
         public static void DecryptXMLs()
         {
-            var gameDir =
-                "e:\\Program Files (x86)\\Steam\\steamapps\\common\\WarmSnow\\WarmSnow_Data\\StreamingAssets\\XML";
+            var gameDir = "d:\\Program Files (x86)\\Steam\\steamapps\\common\\WarmSnow\\WarmSnow_Data\\StreamingAssets\\XML";
+            // var gameDir = "e:\\Program Files (x86)\\Steam\\steamapps\\common\\WarmSnow\\WarmSnow_Data\\StreamingAssets\\XML";
             var fileList = new string[] {"Config_Map.xml","Config_MonsterGroup.xml","Config_Monster.xml"};
             foreach (var f in fileList)
             {
