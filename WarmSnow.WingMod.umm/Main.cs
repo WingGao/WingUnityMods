@@ -300,11 +300,18 @@ namespace WingMod
             {
                 if (mod.Active) damage *= (100 - settings.EnemyDamagePer) / 100;
             }
+        }
 
-            static void Postfix(PlayerAnimControl __instance)
+        //死亡控制
+        [HarmonyPatch(typeof(Parameter))]
+        public static class PlayerParameterPatch
+        {
+            [HarmonyPostfix]
+            [HarmonyPatch("HP", MethodType.Setter)]
+            static void HpPost(Parameter __instance,ref float ___hp)
             {
-                if (mod.Active && settings.DeathDisable)
-                    __instance.playerParameter.HP = Math.Max(1f, __instance.playerParameter.HP);
+                //血量最小为1
+                if (mod.Active && settings.DeathDisable && __instance == PlayerAnimControl.instance.playerParameter) ___hp = Math.Max(1f, ___hp);
             }
         }
 
