@@ -41,10 +41,12 @@ namespace WingMod
 
         [Draw("魂不减")] public bool SoulNotDecrease = true;
 
+        [Draw("角色信息快捷键")] public KeyBinding ShowInfoKeyBinding;
         [Draw("神兵-下次掉落")] public MagicSwordName MagicSwordNextDrop;
         public PN PotionNextDrop = PN.None;
         private List<UnityHelper.ToggleGroupItem> PotionGroups = new List<UnityHelper.ToggleGroupItem>();
         [Draw("打印Error")] public bool LogError = false;
+
 
         public void OnInit()
         {
@@ -112,6 +114,7 @@ namespace WingMod
             modEntry.OnGUI = OnGUI;
             modEntry.OnSaveGUI = OnSaveGUI;
             modEntry.OnShowGUI = OnShowGUI;
+            modEntry.OnHideGUI = OnHideGUI;
 
             EnemyControlPatch.Init();
 
@@ -234,6 +237,19 @@ namespace WingMod
             LogMagicSwardUse();
         }
 
+        public static void OnHideGUI(UnityModManager.ModEntry modEntry)
+        {
+            var pa = PlayerAnimControl.instance;
+            if (pa != null)
+            {
+                var userInfoWindow = pa.gameObject.GetComponent<WingUserInfoWindow>();
+                if (userInfoWindow == null)
+                {
+                    userInfoWindow = pa.gameObject.AddComponent(typeof(WingUserInfoWindow)) as WingUserInfoWindow;
+                }
+            }
+        }
+
         // 打印神兵使用情况
         static void LogMagicSwardUse()
         {
@@ -264,6 +280,7 @@ namespace WingMod
                 {
                     potionName = settings.PotionNextDrop;
                     settings.PotionNextDrop = PN.None;
+                    LogF($"PotionDropPool.Pop 掉落{potionName}");
                 }
             }
 
@@ -274,9 +291,9 @@ namespace WingMod
                 if (mod.Active && settings.DropWeaponLevel3) level = 2; //金色
                 if (mod.Active && settings.PotionNextDrop != PN.None)
                 {
-                    index = PlayerAnimControl.instance.PotionList.FindIndex(v => v == settings.PotionNextDrop);
-                    if (index >= 0) settings.PotionNextDrop = PN.None;
-                    else index = 0;
+                    index = (int) settings.PotionNextDrop;
+                    settings.PotionNextDrop = PN.None;
+                    LogF($"PotionDropPool.Pop 掉落{index}");
                 }
             }
         }
@@ -643,6 +660,76 @@ namespace WingMod
             }
 
             return mapConfigSceneID;
+        }
+
+        /// <summary>
+        /// 角色窗口 自定义
+        /// </summary>
+        public class WingUserInfoWindow : MonoBehaviour
+        {
+            public bool show = false;
+
+            private Rect windowRect = new Rect(100, 100, 350, 400);
+
+            private void Update()
+            {
+                if (settings.ShowInfoKeyBinding != null && settings.ShowInfoKeyBinding.Down()) show = !show;
+            }
+
+            private void OnGUI()
+            {
+                if (!show) return;
+                windowRect = GUI.Window(0, windowRect, WindowFunction, "角色信息");
+            }
+
+            void WindowFunction(int windowID)
+            {
+                var pa = PlayerAnimControl.instance;
+                var pp = pa.playerParameter;
+                UnityHelper.DrawText("HP", $"{pp.HP}/{pp.MAX_HP}");
+                UnityHelper.DrawText("MP", $"{pp.MP}/{pp.MAX_MP}");
+                UnityHelper.DrawText("近战攻击", pp.ATK_MEELE);
+                UnityHelper.DrawText("近战攻击额外%", pp.BONUS_ATK_MEELE_PERCENT);
+                UnityHelper.DrawText("远程攻击", pp.ATK_BLADEBOLT);
+                UnityHelper.DrawText("防御", pp.DEFENSE);
+                UnityHelper.DrawText("攻击速度", pp.ATTACK_SPEED);
+                UnityHelper.DrawText("移动速度", pp.RUN_SPEED);
+
+                for (int index = 0; index < pa.buffAction.buffs.Count; ++index)
+                {
+                    var text = "";
+                    var cBuff = PlayerAnimControl.instance.buffAction.buffs[index];
+                    if (cBuff.buffOverlap == BuffOverlap.StackedLayer)
+                    {
+                        text = cBuff.buffName + "-Buff值" +
+                               cBuff.value.ToString() + ":剩余时间:" +
+                               cBuff.curtimer.ToString("0.0") + "/" +
+                               cBuff.excuteTime.ToString() + ":剩余层数:" +
+                               cBuff.stackLayer.ToString() + "/" +
+                               cBuff.StackedLayerMaxLimit.ToString() + "\n";
+                    }
+                    else if (cBuff.buffOverlap == BuffOverlap.Dot)
+                    {
+                        text = cBuff.buffName + "-Buff值" +
+                               cBuff.value.ToString() + ":剩余时间:" +
+                               cBuff.curtimer.ToString("0.0") + "/" +
+                               cBuff.excuteTime.ToString() + ":剩余层数:" +
+                               cBuff.stackLayer.ToString() + "/" +
+                               cBuff.StackedLayerMaxLimit.ToString() + "\n";
+                    }
+                    else
+                    {
+                        text = cBuff.buffName + "-Buff值" +
+                               cBuff.value.ToString() + ":剩余时间:" +
+                               cBuff.curtimer.ToString("0.0") + "/" +
+                               cBuff.excuteTime.ToString() + "\n";
+                    }
+
+                    UnityHelper.DrawText(text);
+                }
+
+                GUI.DragWindow(new Rect(0, 0, 10000, 10000));
+            }
         }
 
         #endregion

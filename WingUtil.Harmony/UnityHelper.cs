@@ -50,7 +50,7 @@ namespace WingUtil
             GUILayout.Space(5);
             var selectedVal = selected;
             //TODO 性能优化
-            var valIdx = values.FindIndex(v=>v.value.Equals(selectedVal));
+            var valIdx = values.FindIndex(v => v.value.Equals(selectedVal));
             if (valIdx < 0) valIdx = 0;
             // UnityModManager.Logger.Log($"valIdx={valIdx}, selectedVal={selectedVal} unique={values.GetHashCode()}");
             var options = new List<GUILayoutOption>();
@@ -65,6 +65,31 @@ namespace WingUtil
 
             GUILayout.EndHorizontal();
             return changed;
+        }
+
+        public static void DrawText(String label, System.Object value = null)
+        {
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(label);
+            var sk = new GUIStyle(GUI.skin.label);
+            sk.alignment = TextAnchor.UpperRight; //右对齐
+            if (value != null)
+            {
+                var t = "";
+                if (value is float)
+                {
+                    t = $"{value:F2}";
+                }
+                else
+                {
+                    t = value.ToString();
+                }
+
+
+                GUILayout.Label(t, sk);
+            }
+
+            GUILayout.EndHorizontal();
         }
     }
 }
