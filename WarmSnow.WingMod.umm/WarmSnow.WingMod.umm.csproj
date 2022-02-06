@@ -45,6 +45,9 @@
         <Reference Include="System.Core" />
         <Reference Include="System.Data" />
         <Reference Include="System.Xml" />
+        <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+          <HintPath>_game\UnityEngine.dll</HintPath>
+        </Reference>
         <Reference Include="UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
           <HintPath>_game\UnityEngine.CoreModule.dll</HintPath>
         </Reference>
@@ -58,7 +61,6 @@
     <ItemGroup>
         <Compile Include="Main.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
-        <Compile Include="UnityHelper.cs" />
     </ItemGroup>
     <ItemGroup>
       <Content Include="Info.json">

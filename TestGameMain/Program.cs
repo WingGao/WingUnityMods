@@ -15,7 +15,7 @@ namespace TestGameMain
 
         public static void Run()
         {
-            WarmSnowHelper.DecryptXMLs();
+            // WarmSnowHelper.DecryptXMLs();
             var a = new ClassA();
             Console.WriteLine("hello {0}", a.GetName());
             Console.WriteLine("Call {0}", a.Print());

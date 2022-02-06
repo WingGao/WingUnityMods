@@ -40,6 +40,12 @@ namespace TestGameMain
                 Console.WriteLine("FieldClass1.FieldInt1 " + a);
             }
 
+            var floatA = 0.5f; //operand == 0.5f
+            if (floatA < 0.4f)
+            {
+                Console.WriteLine($"floatA={floatA}");
+            }
+
             ClassC.Method1();
             MethodStatic1();
 
