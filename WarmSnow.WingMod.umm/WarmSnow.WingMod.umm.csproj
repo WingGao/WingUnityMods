@@ -52,7 +52,7 @@
           <HintPath>_game\UnityEngine.CoreModule.dll</HintPath>
         </Reference>
         <Reference Include="UnityEngine.IMGUIModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>..\NineProvincesCaravan.WingMod.umm\_game\UnityEngine.IMGUIModule.dll</HintPath>
+          <HintPath>_game\UnityEngine.IMGUIModule.dll</HintPath>
         </Reference>
         <Reference Include="UnityModManager, Version=0.24.0.50, Culture=neutral, PublicKeyToken=null">
           <HintPath>..\libs\dumm\UnityModManager.dll</HintPath>

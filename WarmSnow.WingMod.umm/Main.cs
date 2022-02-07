@@ -61,13 +61,13 @@ namespace WingMod
             {
                 foreach (PN v in Enum.GetValues(typeof(PN)))
                 {
-                    var pName = TextControl.instance.PotionTitle(new Potion() {PotionName = v}, false);
+                    var pName = TextControl.instance.PotionTitle(new Potion() { PotionName = v }, false);
                     if (String.IsNullOrEmpty(pName)) pName = "None";
                     PotionGroups.Add(new UnityHelper.ToggleGroupItem(pName, v));
                 }
             }
 
-            if (UnityHelper.DrawPopupToggleGroup(ref potionVal, "圣物掉落", PotionGroups)) PotionNextDrop = (PN) potionVal;
+            if (UnityHelper.DrawPopupToggleGroup(ref potionVal, "圣物掉落", PotionGroups)) PotionNextDrop = (PN)potionVal;
         }
 
         public override void Save(UnityModManager.ModEntry modEntry)
@@ -228,7 +228,7 @@ namespace WingMod
         #region 该游戏的修改
 
         // 书怪地图
-        private static List<int> BookOfAbyssMapConfigIds = new List<int>() {81, 83, 96, 232, 268, 273, 279, 304, 305};
+        private static List<int> BookOfAbyssMapConfigIds = new List<int>() { 81, 83, 96, 232, 268, 273, 279, 304, 305 };
 
         public static void OnShowGUI(UnityModManager.ModEntry modEntry)
         {
@@ -239,15 +239,6 @@ namespace WingMod
 
         public static void OnHideGUI(UnityModManager.ModEntry modEntry)
         {
-            var pa = PlayerAnimControl.instance;
-            if (pa != null)
-            {
-                var userInfoWindow = pa.gameObject.GetComponent<WingUserInfoWindow>();
-                if (userInfoWindow == null)
-                {
-                    userInfoWindow = pa.gameObject.AddComponent(typeof(WingUserInfoWindow)) as WingUserInfoWindow;
-                }
-            }
         }
 
         // 打印神兵使用情况
@@ -261,7 +252,7 @@ namespace WingMod
                 if (magicSwordName == MagicSwordName.None) continue;
                 var mg = new MagicSword();
                 mg.magicSwordName = magicSwordName;
-                sb.Append($"{TextControl.instance.MagicSwordInfo(mg)[0]}={GlobalParameter.instance.MagicSwordUsed[(int) (magicSwordName - 1)]}; ");
+                sb.Append($"{TextControl.instance.MagicSwordInfo(mg)[0]}={GlobalParameter.instance.MagicSwordUsed[(int)(magicSwordName - 1)]}; ");
             }
 
             LogF(sb.ToString());
@@ -272,7 +263,7 @@ namespace WingMod
         public static class PotionDropPool_Pop
         {
             [HarmonyPrefix]
-            [HarmonyPatch("Pop", new[] {typeof(PN), typeof(int), typeof(Vector3)})]
+            [HarmonyPatch("Pop", new[] { typeof(PN), typeof(int), typeof(Vector3) })]
             public static void Prefix1(ref PN potionName, ref int level)
             {
                 if (mod.Active && settings.DropWeaponLevel3) level = 2; //金色
@@ -285,13 +276,13 @@ namespace WingMod
             }
 
             [HarmonyPrefix]
-            [HarmonyPatch("Pop", new[] {typeof(int), typeof(int), typeof(Vector3)})]
+            [HarmonyPatch("Pop", new[] { typeof(int), typeof(int), typeof(Vector3) })]
             static void Prefix2(ref int index, ref int level)
             {
                 if (mod.Active && settings.DropWeaponLevel3) level = 2; //金色
                 if (mod.Active && settings.PotionNextDrop != PN.None)
                 {
-                    index = (int) settings.PotionNextDrop;
+                    index = (int)settings.PotionNextDrop;
                     settings.PotionNextDrop = PN.None;
                     LogF($"PotionDropPool.Pop 掉落{index}");
                 }
@@ -326,7 +317,7 @@ namespace WingMod
             {
                 if (mod.Active && settings.MagicSwordNextDrop != MagicSwordName.None)
                 {
-                    __result = (int) settings.MagicSwordNextDrop;
+                    __result = (int)settings.MagicSwordNextDrop;
                     settings.MagicSwordNextDrop = MagicSwordName.None; //一次性指令
                 }
             }
@@ -369,6 +360,17 @@ namespace WingMod
         [HarmonyPatch(typeof(PlayerAnimControl))]
         public static class PlayerAnimControlPatch
         {
+            [HarmonyPostfix]
+            [HarmonyPatch("Start")]
+            static void StartPost(PlayerAnimControl __instance)
+            {
+                var userInfoWindow = __instance.gameObject.GetComponent<WingUserInfoWindow>();
+                if (userInfoWindow == null)
+                {
+                    userInfoWindow = __instance.gameObject.AddComponent(typeof(WingUserInfoWindow)) as WingUserInfoWindow;
+                }
+            }
+
             [HarmonyPrefix]
             [HarmonyPatch("Souls", MethodType.Setter)]
             static bool SoulSetterPrefix(int __0, int ___souls)
@@ -402,7 +404,8 @@ namespace WingMod
                      (pa.SWORDMASTER_SKILL_UnlimitedSwords &&
                       (pa.SWORDMASTER_SKILL_UnlimitedSwords_IsOverHeat ||
                        pa.SWORDMASTER_SKILL_UnlimitedSwords_Heat >= pa.SWORDMASTER_SKILL_UnlimitedSwords_MaxHeat)))
-                    && IsFlySwardBackCdOk())
+                    && IsFlySwardBackCdOk()
+                    && (CheckPlayerInputDown(SpecialAction.FlyingSword) || CheckPlayerInputKeep(SpecialAction.FlyingSword)))
                 {
                     PlayerAnimControl.instance.ShouldDrawSword = true;
                     // 冷却时间
@@ -459,18 +462,30 @@ namespace WingMod
             public static bool FlySwardKeepPatch(bool a)
             {
                 if (mod.Active && settings.FlySwardKeepPress)
-                    return (bool) AccessTools.Method(typeof(PlayerAnimControl), "CheckPlayerInputKeep").Invoke(
-                        PlayerAnimControl.instance,
-                        new object[] {SpecialAction.FlyingSword});
+                    return CheckPlayerInputKeep(SpecialAction.FlyingSword);
                 return a;
             }
+        }
+
+        static bool CheckPlayerInputKeep(SpecialAction key)
+        {
+            return (bool)AccessTools.Method(typeof(PlayerAnimControl), "CheckPlayerInputKeep").Invoke(
+                PlayerAnimControl.instance,
+                new object[] { key });
+        }
+
+        static bool CheckPlayerInputDown(SpecialAction key)
+        {
+            return (bool)AccessTools.Method(typeof(PlayerAnimControl), "CheckPlayerInputDown").Invoke(
+                PlayerAnimControl.instance,
+                new object[] { key });
         }
 
         // 飞剑冷却完成
         static bool IsFlySwardBackCdOk()
         {
             return PlayerAnimControl.instance.DrawCoolDownTimer >= PlayerAnimControl.instance.drawCoolDown *
-                (1.0 - (double) PlayerAnimControl.instance.playerParameter.DRAW_SWORD_CD_REDUCE);
+                (1.0 - (double)PlayerAnimControl.instance.playerParameter.DRAW_SWORD_CD_REDUCE);
         }
 
         // 怪物受伤
@@ -673,17 +688,18 @@ namespace WingMod
 
             private void Update()
             {
-                if (settings.ShowInfoKeyBinding != null && settings.ShowInfoKeyBinding.Down()) show = !show;
+                if (mod.Active && settings.ShowInfoKeyBinding != null && settings.ShowInfoKeyBinding.Down()) show = !show;
             }
 
             private void OnGUI()
             {
-                if (!show) return;
+                if (!mod.Active || !show) return;
                 windowRect = GUI.Window(0, windowRect, WindowFunction, "角色信息");
             }
 
             void WindowFunction(int windowID)
             {
+                GUILayout.BeginScrollView(Vector2.zero);
                 var pa = PlayerAnimControl.instance;
                 var pp = pa.playerParameter;
                 UnityHelper.DrawText("HP", $"{pp.HP}/{pp.MAX_HP}");
@@ -728,6 +744,7 @@ namespace WingMod
                     UnityHelper.DrawText(text);
                 }
 
+                GUILayout.EndScrollView();
                 GUI.DragWindow(new Rect(0, 0, 10000, 10000));
             }
         }
