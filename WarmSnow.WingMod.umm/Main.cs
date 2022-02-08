@@ -5,6 +5,9 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
+using DG.Tweening;
+using DG.Tweening.Core;
+using DG.Tweening.Plugins.Options;
 using HarmonyLib;
 using UnityEngine;
 using UnityModManagerNet;
@@ -23,6 +26,7 @@ namespace WingMod
         [Draw("见闻掉落无限制")] public bool DropStoryUnlimited = true;
         [Draw("必出书怪")] public bool ShuguaiEnable = false;
         [Draw("必出特殊房间")] public bool RandomRoomDisable = true;
+        [Draw("技能无限随机")] public bool RandomSkillInf = true;
         [Draw("毒宗碎片增加")] public bool DuPopEnable = true;
         [Draw("剑返自动触发")] public bool FlySwardAutoBack = true;
         [Draw("剑返无冷却")] public bool FlySwardBackNoCd = true;
@@ -542,6 +546,21 @@ namespace WingMod
             static void OnDisablePrefix(EnemyControl __instance)
             {
                 patchedMonster.Remove(__instance); //移除patch标记
+            }
+        }
+
+        [HarmonyPatch(typeof(MenuSkillLearn), "SkillReRandom")]
+        public static class MenuSkillLearnPatch
+        {
+            static void Postfix(MenuSkillLearn __instance)
+            {
+                if (mod.Active && settings.RandomSkillInf && PlayerAnimControl.instance.MementoRefine_RandomSkill)
+                {
+                    DOTween.To((() => __instance.refineButton.alpha), (x => __instance.refineButton.alpha = x), 1f, 0.2f).SetDelay(0.3f);
+                    __instance.refineButton.alpha = 1f;
+                    __instance.refineButton.blocksRaycasts = true;
+                    __instance.hasSkillRandom = false;
+                }
             }
         }
 
