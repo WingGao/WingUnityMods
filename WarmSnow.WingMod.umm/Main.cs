@@ -46,6 +46,7 @@ namespace WingMod
         [Draw("魂不减")] public bool SoulNotDecrease = true;
 
         [Draw("角色信息快捷键")] public KeyBinding ShowInfoKeyBinding;
+        [Draw("武器编辑快捷键")] public KeyBinding ShowWeaponKeyBinding;
         [Draw("神兵-下次掉落")] public MagicSwordName MagicSwordNextDrop;
         public PN PotionNextDrop = PN.None;
         private List<UnityHelper.ToggleGroupItem> PotionGroups = new List<UnityHelper.ToggleGroupItem>();
@@ -702,18 +703,29 @@ namespace WingMod
         public class WingUserInfoWindow : MonoBehaviour
         {
             public bool show = false;
+            public bool showWeapon = false;
 
-            private Rect windowRect = new Rect(100, 100, 350, 400);
+            private Rect windowInfoRect = new Rect(100, 100, 350, 400);
+            private Rect windowWeaponRect = new Rect(100, 100, 500, 400);
+
+            private List<UnityHelper.ToggleGroupItem> weaponGroups = new List<UnityHelper.ToggleGroupItem>();
+
+            private void Start()
+            {
+                LogF("WingUserInfoWindow.Start");
+            }
 
             private void Update()
             {
                 if (mod.Active && settings.ShowInfoKeyBinding != null && settings.ShowInfoKeyBinding.Down()) show = !show;
+                if (mod.Active && settings.ShowWeaponKeyBinding != null && settings.ShowWeaponKeyBinding.Down()) showWeapon = !showWeapon;
             }
 
             private void OnGUI()
             {
-                if (!mod.Active || !show) return;
-                windowRect = GUI.Window(0, windowRect, WindowFunction, "角色信息");
+                if (!mod.Active) return;
+                if (show) windowInfoRect = GUI.Window(0, windowInfoRect, WindowFunction, "角色信息");
+                if (showWeapon) windowWeaponRect = GUI.Window(1, windowWeaponRect, WeaponWindowFunc, "武器信息");
             }
 
             void WindowFunction(int windowID)
@@ -765,6 +777,84 @@ namespace WingMod
 
                 GUILayout.EndScrollView();
                 GUI.DragWindow(new Rect(0, 0, 10000, 10000));
+            }
+
+            /// <summary>
+            /// 武器编辑窗口
+            /// </summary>
+            /// <param name="windowID"></param>
+            void WeaponWindowFunc(int windowID)
+            {
+                InitWeaponGroups();
+                var weapon = MagicSwordControl.instance.curMagicSword;
+                var info = TextControl.instance.MagicSwordInfo(weapon);
+                UnityHelper.DrawText("名称", info[0]);
+                UnityHelper.DrawText(info[1]);
+                UnityHelper.DrawText("--词条--");
+                if (weapon.magicSwordName != MagicSwordName.None)
+                {
+                    //词条
+                    for (var i = 0; i < weapon.magicSwordEntrys.Count; i++)
+                    {
+                        int entryIdx = i;
+                        var entry = weapon.magicSwordEntrys[i];
+                        var selectName = entry.magicSwordEntryName as System.Object;
+                        GUILayout.BeginHorizontal();
+                        if (UnityHelper.DrawPopupToggleGroup(ref selectName, $"词条{i + 1}", weaponGroups, inline: true))
+                        {
+                            LogF($"{i} {entry.magicSwordEntryName} 选择了 {selectName}");
+                            ChangeWeapon(i, (MagicSwordEntryName)selectName, entry.values * 100);
+                            // entry.magicSwordEntryName = (MagicSwordEntryName)selectName;
+                        }
+
+                        // GUILayout.Label($"{entry.values}");
+                        var entryVal = (int)(entry.values * 100);
+                        if (UnityHelper.DrawField(ref entryVal))
+                        {
+                            LogF($"{i} {entry.magicSwordEntryName} 选择了 {entryVal}");
+                            ChangeWeapon(i, entry.magicSwordEntryName, entryVal);
+                        }
+
+                        GUILayout.EndHorizontal();
+                    }
+                }
+                GUI.DragWindow(new Rect(0, 0, 10000, 10000));
+            }
+
+            void ChangeWeapon(int i, MagicSwordEntryName ename, float value100)
+            {
+                var magicSwordEntry = MagicSwordControl.instance.curMagicSword.magicSwordEntrys[i];
+                magicSwordEntry.magicSwordEntryName = ename;
+                magicSwordEntry.values = value100 / 100;
+                MagicSwordControl.instance.curMagicSword.magicSwordEntrys[i] = magicSwordEntry;
+                // MenuPotionExchange.instance.magicSwordDescribe.
+                UI_MagicSwordInMenu.instance.MagicSwordOn(0);
+            }
+
+            void InitWeaponGroups()
+            {
+                if (weaponGroups.Count == 0)
+                {
+                    // 获取词条中文
+                    var magic = new MagicSword();
+                    magic.Level = 1;
+                    magic.magicSwordName = MagicSwordName.BaHuang;
+                    magic.magicSwordEntrys = new List<MagicSwordEntry>();
+                    var entryList = Enum.GetValues(typeof(MagicSwordEntryName)).OfType<MagicSwordEntryName>().Select(v =>
+                    {
+                        var entry = new MagicSwordEntry();
+                        entry.magicSwordEntryName = v;
+                        magic.magicSwordEntrys.Add(entry);
+                        return v;
+                    }).ToList();
+                    var magicDesc = TextControl.instance.MagicSwordDescribe(magic);
+                    // LogF($"--magicDesc--\n{magicDesc.describe}");
+                    var entryCnList = magicDesc.describe.Split('\n');
+                    for (int i = 0; i < entryList.Count; i++)
+                    {
+                        weaponGroups.Add(new UnityHelper.ToggleGroupItem(entryCnList[i], entryList[i]));
+                    }
+                }
             }
         }
 
