@@ -679,7 +679,7 @@ namespace WingMod
             private void OnGUI()
             {
                 if (!show) return;
-                windowRect = GUI.Window(0, windowRect, WindowFunction, "角色信息");
+                windowRect = GUI.Window(0, windowRect, WindowFunction, $"角色信息 {settings.ShowInfoKeyBinding}");
             }
 
             void WindowFunction(int windowID)
