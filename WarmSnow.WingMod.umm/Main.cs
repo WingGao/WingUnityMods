@@ -27,6 +27,7 @@ namespace WingMod
         [Draw("必出书怪")] public bool ShuguaiEnable = false;
         [Draw("必出特殊房间")] public bool RandomRoomDisable = true;
         [Draw("技能无限随机")] public bool RandomSkillInf = true;
+        [Draw("快速精炼")] public bool PotionRefineQuick = true;
         [Draw("毒宗碎片增加")] public bool DuPopEnable = true;
         [Draw("剑返自动触发")] public bool FlySwardAutoBack = true;
         [Draw("剑返无冷却")] public bool FlySwardBackNoCd = true;
@@ -293,6 +294,106 @@ namespace WingMod
                 }
             }
         }
+
+        /// <summary>
+        /// 快速精炼
+        /// </summary>
+        [HarmonyPatch]
+        public static class PotionDropControl_RefinePotionPatch
+        {
+            public static MethodBase TargetMethod()
+            {
+                var type = AccessTools.FirstInner(typeof(PotionDropControl), t => t.Name.Contains("<RefinePotion>d__21"));
+                LogF($"TargetMethod {type}");
+                return AccessTools.FirstMethod(type, method => method.Name.Contains("MoveNext"));
+            }
+
+            static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator gen)
+            {
+                ILCursor c = new ILCursor(instructions);
+                // c.LogTo(LogF, "PotionDropControl.RefinePotionPatch origin");
+                // 修改概率，变为1.02的那个
+                var tag = 0;
+                Action logTag = delegate() { LogF($"PotionDropControl_RefinePotionPatch.Transpiler Tag{++tag}"); };
+                c.Index = 2;
+                c.Emit(OpCodes.Callvirt, AccessTools.Method(typeof(PotionDropControl_RefinePotionPatch), "MyPatch2"));
+                if (c.TryGotoNext(MoveType.After, inst => inst.Instruction.MatchCallByName("UI_RefineChoose::On")))
+                {
+                    c.Emit(OpCodes.Callvirt, AccessTools.Method(typeof(PotionDropControl_RefinePotionPatch), "MyPatch1"));
+                }
+
+                //增加攻击力的label
+                Label atkLabel = default;
+                if (c.TryGotoNext(inst => inst.Instruction.MatchLdfld("PlayerAnimControl::RefineAtkCount")))
+                {
+                    LogF($"p{++tag}");
+                    c.Index -= 5; //ldc.i4.0 NULL [Label13]
+                    LogF($"pos1 {c.Next}");
+                    atkLabel = c.Next.Instruction.labels[0]; //增加攻击的label
+                    LogF($"atk label {atkLabel.GetHashCode()}");
+                }
+
+                // 增加hp之后再增加atk
+                c.Index = 0; //从头开始
+                if (c.TryGotoNext(MoveType.After, inst => inst.Instruction.MatchStfld("PlayerAnimControl::RefineHPCriticalCount")))
+                {
+                    LogF($"p{++tag}");
+                    c.Emit(OpCodes.Callvirt, AccessTools.Method(typeof(PotionDropControl_RefinePotionPatch), "MyEnabled"));
+                    c.Emit(OpCodes.Brtrue_S, atkLabel);
+                }
+
+                c.LogTo(LogF, "PotionDropControl.RefinePotionPatch");
+                return c.Context.AsEnumerable();
+            }
+
+            public static bool MyEnabled()
+            {
+                return mod.Active && settings.PotionRefineQuick;
+            }
+
+            public static void MyPatch1()
+            {
+                if (MyEnabled())
+                {
+                    UI_RefineChoose.instance.chooseHP();
+                }
+            }
+
+            // 判断随机数
+            public static void MyPatch2()
+            {
+                if (MyEnabled())
+                {
+                    PlayerAnimControl.instance.MementoRefine_PotionRefine_DoubleOdd = 1f;
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(PotionDropControl))]
+        public static class PotionDropControlPatch
+        {
+            [HarmonyTranspiler]
+            [HarmonyPatch("Update")]
+            static IEnumerable<CodeInstruction> UpdateTranspiler(IEnumerable<CodeInstruction> instructions, ILGenerator gen)
+            {
+                ILCursor c = new ILCursor(instructions);
+                if (c.TryGotoNext(inst => inst.Instruction.opcode == OpCodes.Add,
+                        inst => inst.Instruction.MatchStfld("PotionDropControl::refineTimer")))
+                {
+                    c.Emit(OpCodes.Callvirt, AccessTools.Method(typeof(PotionDropControlPatch), "UpdateTranspilerPatch1"));
+                }
+
+                c.LogTo(LogF, "PotionDropControlPatch.UpdateTranspiler");
+                return c.Context.AsEnumerable();
+            }
+
+            // 5倍加速精炼
+            public static float UpdateTranspilerPatch1(float delay)
+            {
+                return PotionDropControl_RefinePotionPatch.MyEnabled() ? delay * 5 : delay;
+            }
+        }
+
 
         //技能掉落
         [HarmonyPatch(typeof(SkillDropPool), "Pop")]
@@ -818,6 +919,7 @@ namespace WingMod
                         GUILayout.EndHorizontal();
                     }
                 }
+
                 GUI.DragWindow(new Rect(0, 0, 10000, 10000));
             }
 
