@@ -105,5 +105,23 @@ namespace WingUtil.Harmony
 
             return false;
         }
+    /// <summary>
+    ///  stfld        int32 PlayerAnimControl::RefineHPCriticalCount ==>  PlayerAnimControl::RefineHPCriticalCount 
+    /// </summary>
+    /// <param name="instr"></param>
+    /// <param name="name"></param>
+    /// <returns></returns>
+    public static bool MatchStfld(this CodeInstruction instr, string name)
+    {
+        if (instr.opcode == OpCodes.Stfld)
+        {
+            FieldInfo opr = instr.operand as FieldInfo;
+            var fName = opr.DeclaringType + "::" + opr.Name;
+            return fName == name;
+        }
+
+        return false;
+    }
+    
     }
 }

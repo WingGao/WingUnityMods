@@ -42,10 +42,10 @@ namespace WingUtil
         /// <summary>
         /// 构建UMM的PopupToggleGroup选项
         /// </summary>
-        public static bool DrawPopupToggleGroup(ref System.Object selected, String fieldName, List<ToggleGroupItem> values)
+        public static bool DrawPopupToggleGroup(ref System.Object selected, String fieldName, List<ToggleGroupItem> values, bool inline = false)
         {
             var changed = false;
-            GUILayout.BeginHorizontal();
+            if (!inline) GUILayout.BeginHorizontal();
             GUILayout.Label(fieldName, GUILayout.ExpandWidth(false));
             GUILayout.Space(5);
             var selectedVal = selected;
@@ -63,7 +63,7 @@ namespace WingUtil
                 // UnityModManager.Logger.Log($"PopupToggleGroup change valIdx={valIdx}, selected={selected} ");
             }
 
-            GUILayout.EndHorizontal();
+            if (!inline) GUILayout.EndHorizontal();
             return changed;
         }
 
@@ -90,6 +90,59 @@ namespace WingUtil
             }
 
             GUILayout.EndHorizontal();
+        }
+
+        private static Dictionary<int, String> fieldTempDict = new Dictionary<int, string>();
+
+        public static bool DrawField(ref System.Object value)
+        {
+            var changed = false;
+            String vStr;
+            switch (value)
+            {
+                case float tFloat:
+                    vStr = tFloat.ToString("f3");
+                    break;
+                default:
+                    vStr = value.ToString();
+                    break;
+            }
+
+            var newValStr = GUILayout.TextField(vStr);
+            System.Object newVal = newValStr;
+            switch (value)
+            {
+                case int tInt:
+                    newVal = Int32.Parse(newValStr);
+                    break;
+                case float tFloat:
+                    newVal = float.Parse(newValStr);
+                    break;
+            }
+
+            if (!newVal.Equals(value))
+            {
+                changed = true;
+                value = newVal;
+            }
+
+            return changed;
+        }
+
+        public static bool DrawField(ref int value)
+        {
+            System.Object v = value;
+            var changed = DrawField(ref v);
+            value = (int)v;
+            return changed;
+        }
+
+        public static bool DrawField(ref float value)
+        {
+            System.Object v = value;
+            var changed = DrawField(ref v);
+            value = (float)v;
+            return changed;
         }
     }
 }

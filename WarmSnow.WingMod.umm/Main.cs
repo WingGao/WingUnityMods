@@ -5,6 +5,9 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
+using DG.Tweening;
+using DG.Tweening.Core;
+using DG.Tweening.Plugins.Options;
 using HarmonyLib;
 using UnityEngine;
 using UnityModManagerNet;
@@ -23,6 +26,8 @@ namespace WingMod
         [Draw("见闻掉落无限制")] public bool DropStoryUnlimited = true;
         [Draw("必出书怪")] public bool ShuguaiEnable = false;
         [Draw("必出特殊房间")] public bool RandomRoomDisable = true;
+        [Draw("技能无限随机")] public bool RandomSkillInf = true;
+        [Draw("快速精炼")] public bool PotionRefineQuick = true;
         [Draw("毒宗碎片增加")] public bool DuPopEnable = true;
         [Draw("剑返自动触发")] public bool FlySwardAutoBack = true;
         [Draw("剑返无冷却")] public bool FlySwardBackNoCd = true;
@@ -42,6 +47,7 @@ namespace WingMod
         [Draw("魂不减")] public bool SoulNotDecrease = true;
 
         [Draw("角色信息快捷键")] public KeyBinding ShowInfoKeyBinding;
+        [Draw("武器编辑快捷键")] public KeyBinding ShowWeaponKeyBinding;
         [Draw("神兵-下次掉落")] public MagicSwordName MagicSwordNextDrop;
         public PN PotionNextDrop = PN.None;
         private List<UnityHelper.ToggleGroupItem> PotionGroups = new List<UnityHelper.ToggleGroupItem>();
@@ -61,13 +67,13 @@ namespace WingMod
             {
                 foreach (PN v in Enum.GetValues(typeof(PN)))
                 {
-                    var pName = TextControl.instance.PotionTitle(new Potion() {PotionName = v}, false);
+                    var pName = TextControl.instance.PotionTitle(new Potion() { PotionName = v }, false);
                     if (String.IsNullOrEmpty(pName)) pName = "None";
                     PotionGroups.Add(new UnityHelper.ToggleGroupItem(pName, v));
                 }
             }
 
-            if (UnityHelper.DrawPopupToggleGroup(ref potionVal, "圣物掉落", PotionGroups)) PotionNextDrop = (PN) potionVal;
+            if (UnityHelper.DrawPopupToggleGroup(ref potionVal, "圣物掉落", PotionGroups)) PotionNextDrop = (PN)potionVal;
         }
 
         public override void Save(UnityModManager.ModEntry modEntry)
@@ -228,7 +234,7 @@ namespace WingMod
         #region 该游戏的修改
 
         // 书怪地图
-        private static List<int> BookOfAbyssMapConfigIds = new List<int>() {81, 83, 96, 232, 268, 273, 279, 304, 305};
+        private static List<int> BookOfAbyssMapConfigIds = new List<int>() { 81, 83, 96, 232, 268, 273, 279, 304, 305 };
 
         public static void OnShowGUI(UnityModManager.ModEntry modEntry)
         {
@@ -239,15 +245,6 @@ namespace WingMod
 
         public static void OnHideGUI(UnityModManager.ModEntry modEntry)
         {
-            var pa = PlayerAnimControl.instance;
-            if (pa != null)
-            {
-                var userInfoWindow = pa.gameObject.GetComponent<WingUserInfoWindow>();
-                if (userInfoWindow == null)
-                {
-                    userInfoWindow = pa.gameObject.AddComponent(typeof(WingUserInfoWindow)) as WingUserInfoWindow;
-                }
-            }
         }
 
         // 打印神兵使用情况
@@ -261,7 +258,7 @@ namespace WingMod
                 if (magicSwordName == MagicSwordName.None) continue;
                 var mg = new MagicSword();
                 mg.magicSwordName = magicSwordName;
-                sb.Append($"{TextControl.instance.MagicSwordInfo(mg)[0]}={GlobalParameter.instance.MagicSwordUsed[(int) (magicSwordName - 1)]}; ");
+                sb.Append($"{TextControl.instance.MagicSwordInfo(mg)[0]}={GlobalParameter.instance.MagicSwordUsed[(int)(magicSwordName - 1)]}; ");
             }
 
             LogF(sb.ToString());
@@ -272,7 +269,7 @@ namespace WingMod
         public static class PotionDropPool_Pop
         {
             [HarmonyPrefix]
-            [HarmonyPatch("Pop", new[] {typeof(PN), typeof(int), typeof(Vector3)})]
+            [HarmonyPatch("Pop", new[] { typeof(PN), typeof(int), typeof(Vector3) })]
             public static void Prefix1(ref PN potionName, ref int level)
             {
                 if (mod.Active && settings.DropWeaponLevel3) level = 2; //金色
@@ -285,18 +282,118 @@ namespace WingMod
             }
 
             [HarmonyPrefix]
-            [HarmonyPatch("Pop", new[] {typeof(int), typeof(int), typeof(Vector3)})]
+            [HarmonyPatch("Pop", new[] { typeof(int), typeof(int), typeof(Vector3) })]
             static void Prefix2(ref int index, ref int level)
             {
                 if (mod.Active && settings.DropWeaponLevel3) level = 2; //金色
                 if (mod.Active && settings.PotionNextDrop != PN.None)
                 {
-                    index = (int) settings.PotionNextDrop;
+                    index = (int)settings.PotionNextDrop;
                     settings.PotionNextDrop = PN.None;
                     LogF($"PotionDropPool.Pop 掉落{index}");
                 }
             }
         }
+
+        /// <summary>
+        /// 快速精炼
+        /// </summary>
+        [HarmonyPatch]
+        public static class PotionDropControl_RefinePotionPatch
+        {
+            public static MethodBase TargetMethod()
+            {
+                var type = AccessTools.FirstInner(typeof(PotionDropControl), t => t.Name.Contains("<RefinePotion>d__21"));
+                LogF($"TargetMethod {type}");
+                return AccessTools.FirstMethod(type, method => method.Name.Contains("MoveNext"));
+            }
+
+            static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator gen)
+            {
+                ILCursor c = new ILCursor(instructions);
+                // c.LogTo(LogF, "PotionDropControl.RefinePotionPatch origin");
+                // 修改概率，变为1.02的那个
+                var tag = 0;
+                Action logTag = delegate() { LogF($"PotionDropControl_RefinePotionPatch.Transpiler Tag{++tag}"); };
+                c.Index = 2;
+                c.Emit(OpCodes.Callvirt, AccessTools.Method(typeof(PotionDropControl_RefinePotionPatch), "MyPatch2"));
+                if (c.TryGotoNext(MoveType.After, inst => inst.Instruction.MatchCallByName("UI_RefineChoose::On")))
+                {
+                    c.Emit(OpCodes.Callvirt, AccessTools.Method(typeof(PotionDropControl_RefinePotionPatch), "MyPatch1"));
+                }
+
+                //增加攻击力的label
+                Label atkLabel = default;
+                if (c.TryGotoNext(inst => inst.Instruction.MatchLdfld("PlayerAnimControl::RefineAtkCount")))
+                {
+                    LogF($"p{++tag}");
+                    c.Index -= 5; //ldc.i4.0 NULL [Label13]
+                    LogF($"pos1 {c.Next}");
+                    atkLabel = c.Next.Instruction.labels[0]; //增加攻击的label
+                    LogF($"atk label {atkLabel.GetHashCode()}");
+                }
+
+                // 增加hp之后再增加atk
+                c.Index = 0; //从头开始
+                if (c.TryGotoNext(MoveType.After, inst => inst.Instruction.MatchStfld("PlayerAnimControl::RefineHPCriticalCount")))
+                {
+                    LogF($"p{++tag}");
+                    c.Emit(OpCodes.Callvirt, AccessTools.Method(typeof(PotionDropControl_RefinePotionPatch), "MyEnabled"));
+                    c.Emit(OpCodes.Brtrue_S, atkLabel);
+                }
+
+                c.LogTo(LogF, "PotionDropControl.RefinePotionPatch");
+                return c.Context.AsEnumerable();
+            }
+
+            public static bool MyEnabled()
+            {
+                return mod.Active && settings.PotionRefineQuick;
+            }
+
+            public static void MyPatch1()
+            {
+                if (MyEnabled())
+                {
+                    UI_RefineChoose.instance.chooseHP();
+                }
+            }
+
+            // 判断随机数
+            public static void MyPatch2()
+            {
+                if (MyEnabled())
+                {
+                    PlayerAnimControl.instance.MementoRefine_PotionRefine_DoubleOdd = 1f;
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(PotionDropControl))]
+        public static class PotionDropControlPatch
+        {
+            [HarmonyTranspiler]
+            [HarmonyPatch("Update")]
+            static IEnumerable<CodeInstruction> UpdateTranspiler(IEnumerable<CodeInstruction> instructions, ILGenerator gen)
+            {
+                ILCursor c = new ILCursor(instructions);
+                if (c.TryGotoNext(inst => inst.Instruction.opcode == OpCodes.Add,
+                        inst => inst.Instruction.MatchStfld("PotionDropControl::refineTimer")))
+                {
+                    c.Emit(OpCodes.Callvirt, AccessTools.Method(typeof(PotionDropControlPatch), "UpdateTranspilerPatch1"));
+                }
+
+                c.LogTo(LogF, "PotionDropControlPatch.UpdateTranspiler");
+                return c.Context.AsEnumerable();
+            }
+
+            // 5倍加速精炼
+            public static float UpdateTranspilerPatch1(float delay)
+            {
+                return PotionDropControl_RefinePotionPatch.MyEnabled() ? delay * 5 : delay;
+            }
+        }
+
 
         //技能掉落
         [HarmonyPatch(typeof(SkillDropPool), "Pop")]
@@ -326,7 +423,7 @@ namespace WingMod
             {
                 if (mod.Active && settings.MagicSwordNextDrop != MagicSwordName.None)
                 {
-                    __result = (int) settings.MagicSwordNextDrop;
+                    __result = (int)settings.MagicSwordNextDrop;
                     settings.MagicSwordNextDrop = MagicSwordName.None; //一次性指令
                 }
             }
@@ -369,6 +466,17 @@ namespace WingMod
         [HarmonyPatch(typeof(PlayerAnimControl))]
         public static class PlayerAnimControlPatch
         {
+            [HarmonyPostfix]
+            [HarmonyPatch("Start")]
+            static void StartPost(PlayerAnimControl __instance)
+            {
+                var userInfoWindow = __instance.gameObject.GetComponent<WingUserInfoWindow>();
+                if (userInfoWindow == null)
+                {
+                    userInfoWindow = __instance.gameObject.AddComponent(typeof(WingUserInfoWindow)) as WingUserInfoWindow;
+                }
+            }
+
             [HarmonyPrefix]
             [HarmonyPatch("Souls", MethodType.Setter)]
             static bool SoulSetterPrefix(int __0, int ___souls)
@@ -402,7 +510,8 @@ namespace WingMod
                      (pa.SWORDMASTER_SKILL_UnlimitedSwords &&
                       (pa.SWORDMASTER_SKILL_UnlimitedSwords_IsOverHeat ||
                        pa.SWORDMASTER_SKILL_UnlimitedSwords_Heat >= pa.SWORDMASTER_SKILL_UnlimitedSwords_MaxHeat)))
-                    && IsFlySwardBackCdOk())
+                    && IsFlySwardBackCdOk()
+                    && (CheckPlayerInputDown(SpecialAction.FlyingSword) || CheckPlayerInputKeep(SpecialAction.FlyingSword)))
                 {
                     PlayerAnimControl.instance.ShouldDrawSword = true;
                     // 冷却时间
@@ -459,18 +568,30 @@ namespace WingMod
             public static bool FlySwardKeepPatch(bool a)
             {
                 if (mod.Active && settings.FlySwardKeepPress)
-                    return (bool) AccessTools.Method(typeof(PlayerAnimControl), "CheckPlayerInputKeep").Invoke(
-                        PlayerAnimControl.instance,
-                        new object[] {SpecialAction.FlyingSword});
+                    return CheckPlayerInputKeep(SpecialAction.FlyingSword);
                 return a;
             }
+        }
+
+        static bool CheckPlayerInputKeep(SpecialAction key)
+        {
+            return (bool)AccessTools.Method(typeof(PlayerAnimControl), "CheckPlayerInputKeep").Invoke(
+                PlayerAnimControl.instance,
+                new object[] { key });
+        }
+
+        static bool CheckPlayerInputDown(SpecialAction key)
+        {
+            return (bool)AccessTools.Method(typeof(PlayerAnimControl), "CheckPlayerInputDown").Invoke(
+                PlayerAnimControl.instance,
+                new object[] { key });
         }
 
         // 飞剑冷却完成
         static bool IsFlySwardBackCdOk()
         {
             return PlayerAnimControl.instance.DrawCoolDownTimer >= PlayerAnimControl.instance.drawCoolDown *
-                (1.0 - (double) PlayerAnimControl.instance.playerParameter.DRAW_SWORD_CD_REDUCE);
+                (1.0 - (double)PlayerAnimControl.instance.playerParameter.DRAW_SWORD_CD_REDUCE);
         }
 
         // 怪物受伤
@@ -527,6 +648,21 @@ namespace WingMod
             static void OnDisablePrefix(EnemyControl __instance)
             {
                 patchedMonster.Remove(__instance); //移除patch标记
+            }
+        }
+
+        [HarmonyPatch(typeof(MenuSkillLearn), "SkillReRandom")]
+        public static class MenuSkillLearnPatch
+        {
+            static void Postfix(MenuSkillLearn __instance)
+            {
+                if (mod.Active && settings.RandomSkillInf && PlayerAnimControl.instance.MementoRefine_RandomSkill)
+                {
+                    DOTween.To((() => __instance.refineButton.alpha), (x => __instance.refineButton.alpha = x), 1f, 0.2f).SetDelay(0.3f);
+                    __instance.refineButton.alpha = 1f;
+                    __instance.refineButton.blocksRaycasts = true;
+                    __instance.hasSkillRandom = false;
+                }
             }
         }
 
@@ -668,22 +804,34 @@ namespace WingMod
         public class WingUserInfoWindow : MonoBehaviour
         {
             public bool show = false;
+            public bool showWeapon = false;
 
-            private Rect windowRect = new Rect(100, 100, 350, 400);
+            private Rect windowInfoRect = new Rect(100, 100, 350, 400);
+            private Rect windowWeaponRect = new Rect(100, 100, 500, 400);
+
+            private List<UnityHelper.ToggleGroupItem> weaponGroups = new List<UnityHelper.ToggleGroupItem>();
+
+            private void Start()
+            {
+                LogF("WingUserInfoWindow.Start");
+            }
 
             private void Update()
             {
-                if (settings.ShowInfoKeyBinding != null && settings.ShowInfoKeyBinding.Down()) show = !show;
+                if (mod.Active && settings.ShowInfoKeyBinding != null && settings.ShowInfoKeyBinding.Down()) show = !show;
+                if (mod.Active && settings.ShowWeaponKeyBinding != null && settings.ShowWeaponKeyBinding.Down()) showWeapon = !showWeapon;
             }
 
             private void OnGUI()
             {
-                if (!show) return;
-                windowRect = GUI.Window(0, windowRect, WindowFunction, $"角色信息 {settings.ShowInfoKeyBinding}");
+                if (!mod.Active) return;
+                if (show) windowInfoRect = GUI.Window(0, windowInfoRect, WindowFunction, $"角色信息 {settings.ShowInfoKeyBinding}");
+                if (showWeapon) windowWeaponRect = GUI.Window(1, windowWeaponRect, WeaponWindowFunc, "武器信息");
             }
 
             void WindowFunction(int windowID)
             {
+                GUILayout.BeginScrollView(Vector2.zero);
                 var pa = PlayerAnimControl.instance;
                 var pp = pa.playerParameter;
                 UnityHelper.DrawText("HP", $"{pp.HP}/{pp.MAX_HP}");
@@ -728,7 +876,87 @@ namespace WingMod
                     UnityHelper.DrawText(text);
                 }
 
+                GUILayout.EndScrollView();
                 GUI.DragWindow(new Rect(0, 0, 10000, 10000));
+            }
+
+            /// <summary>
+            /// 武器编辑窗口
+            /// </summary>
+            /// <param name="windowID"></param>
+            void WeaponWindowFunc(int windowID)
+            {
+                InitWeaponGroups();
+                var weapon = MagicSwordControl.instance.curMagicSword;
+                var info = TextControl.instance.MagicSwordInfo(weapon);
+                UnityHelper.DrawText("名称", info[0]);
+                UnityHelper.DrawText(info[1]);
+                UnityHelper.DrawText("--词条--");
+                if (weapon.magicSwordName != MagicSwordName.None)
+                {
+                    //词条
+                    for (var i = 0; i < weapon.magicSwordEntrys.Count; i++)
+                    {
+                        int entryIdx = i;
+                        var entry = weapon.magicSwordEntrys[i];
+                        var selectName = entry.magicSwordEntryName as System.Object;
+                        GUILayout.BeginHorizontal();
+                        if (UnityHelper.DrawPopupToggleGroup(ref selectName, $"词条{i + 1}", weaponGroups, inline: true))
+                        {
+                            LogF($"{i} {entry.magicSwordEntryName} 选择了 {selectName}");
+                            ChangeWeapon(i, (MagicSwordEntryName)selectName, entry.values * 100);
+                            // entry.magicSwordEntryName = (MagicSwordEntryName)selectName;
+                        }
+
+                        // GUILayout.Label($"{entry.values}");
+                        var entryVal = (int)(entry.values * 100);
+                        if (UnityHelper.DrawField(ref entryVal))
+                        {
+                            LogF($"{i} {entry.magicSwordEntryName} 选择了 {entryVal}");
+                            ChangeWeapon(i, entry.magicSwordEntryName, entryVal);
+                        }
+
+                        GUILayout.EndHorizontal();
+                    }
+                }
+
+                GUI.DragWindow(new Rect(0, 0, 10000, 10000));
+            }
+
+            void ChangeWeapon(int i, MagicSwordEntryName ename, float value100)
+            {
+                var magicSwordEntry = MagicSwordControl.instance.curMagicSword.magicSwordEntrys[i];
+                magicSwordEntry.magicSwordEntryName = ename;
+                magicSwordEntry.values = value100 / 100;
+                MagicSwordControl.instance.curMagicSword.magicSwordEntrys[i] = magicSwordEntry;
+                // MenuPotionExchange.instance.magicSwordDescribe.
+                UI_MagicSwordInMenu.instance.MagicSwordOn(0);
+            }
+
+            void InitWeaponGroups()
+            {
+                if (weaponGroups.Count == 0)
+                {
+                    // 获取词条中文
+                    var magic = new MagicSword();
+                    magic.Level = 1;
+                    magic.magicSwordName = MagicSwordName.BaHuang;
+                    magic.magicSwordEntrys = new List<MagicSwordEntry>();
+                    var entryList = Enum.GetValues(typeof(MagicSwordEntryName)).OfType<MagicSwordEntryName>().Select(v =>
+                    {
+                        var entry = new MagicSwordEntry();
+                        entry.magicSwordEntryName = v;
+                        magic.magicSwordEntrys.Add(entry);
+                        return v;
+                    }).ToList();
+                    var magicDesc = TextControl.instance.MagicSwordDescribe(magic);
+                    // LogF($"--magicDesc--\n{magicDesc.describe}");
+                    var entryCnList = magicDesc.describe.Split('\n');
+                    for (int i = 0; i < entryList.Count; i++)
+                    {
+                        weaponGroups.Add(new UnityHelper.ToggleGroupItem(entryCnList[i], entryList[i]));
+                    }
+                }
             }
         }
 
