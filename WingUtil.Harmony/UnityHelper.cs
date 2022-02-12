@@ -67,12 +67,15 @@ namespace WingUtil
             return changed;
         }
 
-        public static void DrawText(String label, System.Object value = null)
+        public static void DrawText(String label, System.Object value = null, int? fontSize = null)
         {
             GUILayout.BeginHorizontal();
-            GUILayout.Label(label);
             var sk = new GUIStyle(GUI.skin.label);
-            sk.alignment = TextAnchor.UpperRight; //右对齐
+            if (fontSize != null) sk.fontSize = fontSize.Value;
+            GUILayout.Label(label, sk);
+            var valSk = new GUIStyle(sk);
+            valSk.alignment = TextAnchor.UpperRight; //右对齐
+
             if (value != null)
             {
                 var t = "";
@@ -86,7 +89,7 @@ namespace WingUtil
                 }
 
 
-                GUILayout.Label(t, sk);
+                GUILayout.Label(t, valSk);
             }
 
             GUILayout.EndHorizontal();
