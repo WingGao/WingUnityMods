@@ -499,6 +499,8 @@ namespace WingMod
                 return true;
             }
 
+            private static FieldInfo fiIsGourdFire = AccessTools.Field(typeof(PlayerAnimControl), "isGourdFire");
+
             [HarmonyPrefix]
             [HarmonyPatch("Update")]
             static void UpdatePre(PlayerAnimControl __instance, float ___shootCoolDownTimer)
@@ -506,6 +508,8 @@ namespace WingMod
                 var pa = PlayerAnimControl.instance;
                 //自动剑返
                 if (mod.Active && settings.FlySwardAutoBack &&
+                    // 醉歌 且非爆燃
+                    (!pa.DRUNKMASTER_SKILL_SongOfDrunk || (pa.DRUNKMASTER_SKILL_SongOfDrunk && fiIsGourdFire.GetValue(pa).Equals(false))) &&
                     // 剑神
                     ((!pa.SWORDMASTER_SKILL_UnlimitedSwords && pa.playerParameter.SWORDS_COUNT == 0) ||
                      (pa.SWORDMASTER_SKILL_UnlimitedSwords &&

@@ -1,6 +1,6 @@
 {
   "Id": "WingMod",
   "DisplayName": "WingMod",
-  "Version": "1.0.0",
+  "Version": "1.0.1",
   "EntryMethod": "WingMod.Main.Load"
 }
