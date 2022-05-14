@@ -35,6 +35,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WingUtil.Harmony", "WingUti
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WarmSnow.WingMod.umm", "WarmSnow.WingMod.umm\WarmSnow.WingMod.umm.csproj", "{C4B77D47-FAC0-4EB3-8B1D-2787B59370F2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BIE6_ChineseParent", "BIE6_ChineseParent\BIE6_ChineseParent.csproj", "{E757FB46-02AF-4E0B-891C-9F64B1A910F5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -105,6 +107,10 @@ Global
 		{C4B77D47-FAC0-4EB3-8B1D-2787B59370F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C4B77D47-FAC0-4EB3-8B1D-2787B59370F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C4B77D47-FAC0-4EB3-8B1D-2787B59370F2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E757FB46-02AF-4E0B-891C-9F64B1A910F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E757FB46-02AF-4E0B-891C-9F64B1A910F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E757FB46-02AF-4E0B-891C-9F64B1A910F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E757FB46-02AF-4E0B-891C-9F64B1A910F5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
