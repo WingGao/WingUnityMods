@@ -72,13 +72,6 @@ namespace WingMod
                 Plugin.logger("LovingValue patched");
             }
 
-            if (this.Config.Bind<bool>("config", "WaitForSecondsConstructor", true, "10倍速？").Value)
-            {
-                Plugin.logger("patch WaitForSecondsConstructor");
-                Plugin.harmony.PatchAll(typeof(Plugin.WaitForSecondsConstructor));
-                Plugin.logger("WaitForSecondsConstructor patched");
-            }
-
             Plugin.logger("Awake完成");
         }
 
@@ -97,7 +90,7 @@ namespace WingMod
             }
         }
 
-        [HarmonyPatch]
+        [HarmonyPatch(typeof(BrainMgr),"NaodongAddValue",MethodType.Getter)]
         public static class BrainMgrNaodongAddValue
         {
             private static float Postfix(float __result) => __result * Plugin.mul;
@@ -140,7 +133,7 @@ namespace WingMod
             }
         }
 
-        [HarmonyPatch]
+        [HarmonyPatch(typeof(NewFaceRewardMgr),"FaceRewardFetchTimes",MethodType.Getter)]
         public static class NewFaceRewardMgrFaceRewardFetchTimes
         {
             private static int Postfix(int __result) => Mathf.Max(__result, 1);
@@ -175,16 +168,6 @@ namespace WingMod
                 ___m_alertValue = 0;
                 foreach (NewSocialGirlNpcInfo socialGirlNpcInfo in ___m_npcInfos)
                     socialGirlNpcInfo.LovingValue = Mathf.Max(socialGirlNpcInfo.LovingValue, 90);
-            }
-        }
-
-        [HarmonyPatch]
-        public static class WaitForSecondsConstructor
-        {
-            private static bool Prefix(ref float seconds)
-            {
-                seconds *= 0.1f;
-                return true;
             }
         }
     }
