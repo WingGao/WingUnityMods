@@ -1,22 +1,32 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net35</TargetFramework>
-        <AssemblyName>BIE6_ChineseParent</AssemblyName>
+        <TargetFramework>net472</TargetFramework>
+        <AssemblyName>WingMod</AssemblyName>
         <Description>My first plugin</Description>
         <Version>1.0.0</Version>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <LangVersion>latest</LangVersion>
+        <RootNamespace>WingMod</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all"/>
+        <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" />
+        <PackageReference Include="BepInEx.PluginInfoProps" Version="1.*" />
         <PackageReference Include="BepInEx.Unity" Version="6.0.0-*" IncludeAssets="compile"/>
-        <PackageReference Include="BepInEx.PluginInfoProps" Version="1.*"/>
-        <PackageReference Include="UnityEngine.Modules" Version="5.6.0" IncludeAssets="compile"/>
+        <PackageReference Include="UnityEngine.Modules" Version="2018.4.36" IncludeAssets="compile" />
     </ItemGroup>
 
     <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
-        <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="all"/>
+        <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="all" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+        <HintPath>_game\Assembly-CSharp.dll</HintPath>
+      </Reference>
+      <Reference Include="Assembly-CSharp-firstpass, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+        <HintPath>_game\Assembly-CSharp-firstpass.dll</HintPath>
+      </Reference>
     </ItemGroup>
 </Project>

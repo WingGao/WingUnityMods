@@ -7,6 +7,8 @@ const execa = require('execa');
 const iconv = require('iconv-lite');
 const yargs = require('yargs/yargs')
 const { hideBin } = require('yargs/helpers')
+const ModConfigs = require('./game')
+const globby =  require( 'globby');
 /**
  * 参数
  * -g 游戏的gameDir
@@ -21,39 +23,6 @@ const SteamGameDirs = [
   'e:\\Program Files (x86)\\Steam\\steamapps\\common',
   'd:\\Program Files (x86)\\Steam\\steamapps\\common',
   'D:\\Projs\\UnityDemo1\\Temp',
-]
-const ModConfigs = [
-  {
-    steamId: 1296830,
-    name: '暖雪',
-    gameDir: 'WarmSnow',
-    modProjectName: 'WarmSnow.WingMod.umm',
-    ummTargetDir: 'Mods\\WingMod',
-    ummCreateDir: false //是否创建上级目录
-  },
-  {
-    steamId: 908100,
-    name: '九州商旅',
-    gameDir: 'Nine Provinces Caravan',
-    modProjectName: 'NineProvincesCaravan.WingMod.umm',
-    // ummTargetDir: 'Nine_Data\\StreamingAssets\\Mods'
-    ummTargetDir: 'Nine_Data\\StreamingAssets\\workshopAuthor\\2577322910',
-    ummCreateDir: false //是否创建上级目录
-  },
-  {
-    name: '霓虹深渊',
-    gameDir: 'Neon Abyss',
-    modTarget: 'NeonAbyss_Data\\Managed\\Assembly-CSharp.dll',
-    //d:\Projs\WingUnityMods\NeonAbyss.WingMod.mm\bin\Debug\0Harmony.dll
-    modProjectName: 'NeonAbyss.WingMod.mm'
-  },
-  {
-    name: 'Demo1',
-    gameDir: 'UnityDemo1',
-    modTarget: 'UnityDemo1_Data\\Managed\\UnityEngine.UI.dll',
-    //d:\Projs\WingUnityMods\NeonAbyss.WingMod.mm\bin\Debug\0Harmony.dll
-    modProjectName: 'UnityDemo1.WingMod.mm'
-  }
 ]
 
 const ModLibs = [
@@ -85,7 +54,17 @@ function buildGameConfig(cnf) {
   }
   full.modProjectDir = path.resolve(rootDir, cnf.modProjectName)
   full.modProjectOutDir = path.resolve(full.modProjectDir, 'bin\\Debug')
+  full.modProjectOutDir = getWingModOutputDir(full)
   return full
+}
+
+/**
+ * 获取dll生产的目录
+ * @param cnf
+ */
+function getWingModOutputDir(cnf){
+  let dll = globby.sync('**/WingMod.dll',{cwd:cnf.modProjectOutDir,absolute:true})
+  return path.dirname(dll[0])
 }
 
 function getMonoModDir() {
@@ -163,6 +142,22 @@ async function patchMod(cnf) {
   }
 }
 
+async function copyWingMod_BIE(cnf) {
+  let debugDir = cnf.modProjectOutDir
+  logger.info('[copyWingMod_BIE] Debug目录', debugDir)
+  let modFiles = ['WingMod.dll']
+  let targetDir = path.resolve(cnf.gameDir, 'BepInEx/plugins')
+  if (!fs.existsSync(targetDir)) fs.mkdirSync(targetDir)
+  logger.info('[copyWingMod_BIE] 目标目录', targetDir)
+  fs.readdirSync(targetDir).forEach(file => {
+    if (file.startsWith('WingMod.')) { // 删除缓存
+      fs.unlinkSync(path.resolve(targetDir, file))
+    }
+  })
+  await cpy(modFiles, targetDir, { cwd: debugDir });
+  logger.info('[copyWingMod_BIE] 复制mod完毕', modFiles)
+}
+
 // 编译当前项目
 async function buildProject(cnf) {
   try {
@@ -189,13 +184,17 @@ async function main() {
   logger.info('当前游戏', selectedMod.name)
   currentGameConfig = buildGameConfig(selectedMod)
   await buildProject(currentGameConfig)
-  if (currentGameConfig.ummTargetDir == null) { // MonoMod
+  if(currentGameConfig.bie != null){
+    logger.info('BepInEx插件')
+    await copyWingMod_BIE(currentGameConfig)
+  }else if (currentGameConfig.ummTargetDir == null) { // MonoMod
     await copyMonoMod(currentGameConfig)
     await copyWingMod_MM(currentGameConfig)
     await patchMod(currentGameConfig)
   } else { // UnityModManger
     await copyWingMod_UMM(currentGameConfig)
   }
+  // return
   if (argv.s && currentGameConfig.steamId) {
     // let steamUrl = 'steam://rungameid/908100'
     let steamUrl = `steam://rungameid/${currentGameConfig.steamId}`
