@@ -142,11 +142,12 @@ async function patchMod(cnf) {
   }
 }
 
-async function copyWingMod_BIE(cnf) {
+async function copyWingMod_BIE(cnf,hot=false) {
   let debugDir = cnf.modProjectOutDir
   logger.info('[copyWingMod_BIE] Debug目录', debugDir)
   let modFiles = ['WingMod.dll']
-  let targetDir = path.resolve(cnf.gameDir, 'BepInEx/plugins')
+
+  let targetDir = hot?path.resolve(cnf.gameDir, 'BepInEx/scripts'):path.resolve(cnf.gameDir, 'BepInEx/plugins')
   if (!fs.existsSync(targetDir)) fs.mkdirSync(targetDir)
   logger.info('[copyWingMod_BIE] 目标目录', targetDir)
   fs.readdirSync(targetDir).forEach(file => {
@@ -179,6 +180,13 @@ async function buildProject(cnf) {
   }
 }
 
+/**
+ * 参数
+ *  -g: 游戏目录
+ *  -s: 开启游戏
+ *  -r: 热加载
+ * @returns {Promise<void>}
+ */
 async function main() {
   let selectedMod = _.find(ModConfigs,v=>v.gameDir == argv.g)
   logger.info('当前游戏', selectedMod.name)
@@ -186,7 +194,7 @@ async function main() {
   await buildProject(currentGameConfig)
   if(currentGameConfig.bie != null){
     logger.info('BepInEx插件')
-    await copyWingMod_BIE(currentGameConfig)
+    await copyWingMod_BIE(currentGameConfig,argv.r)
   }else if (currentGameConfig.ummTargetDir == null) { // MonoMod
     await copyMonoMod(currentGameConfig)
     await copyWingMod_MM(currentGameConfig)

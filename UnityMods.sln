@@ -37,6 +37,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WarmSnow.WingMod.umm", "War
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BIE6_ChineseParent", "BIE6_ChineseParent\BIE6_ChineseParent.csproj", "{E757FB46-02AF-4E0B-891C-9F64B1A910F5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BannerOfTheMaid.bie5", "BannerOfTheMaid.bie5\BannerOfTheMaid.bie5.csproj", "{C0E02597-0AEA-41F6-8157-7F4B36452FF8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -111,6 +113,10 @@ Global
 		{E757FB46-02AF-4E0B-891C-9F64B1A910F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E757FB46-02AF-4E0B-891C-9F64B1A910F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E757FB46-02AF-4E0B-891C-9F64B1A910F5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C0E02597-0AEA-41F6-8157-7F4B36452FF8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C0E02597-0AEA-41F6-8157-7F4B36452FF8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C0E02597-0AEA-41F6-8157-7F4B36452FF8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C0E02597-0AEA-41F6-8157-7F4B36452FF8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

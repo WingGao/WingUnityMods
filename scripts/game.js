@@ -1,5 +1,12 @@
 ﻿const ModConfigs = [
     {
+        steamId: 994730,
+        name: '圣女战旗',
+        gameDir: 'Banner of the Maid',
+        modProjectName: 'BannerOfTheMaid.bie5',
+        bie: 5
+    },
+    {
         steamId: 736190,
         name: '中国式家长',
         gameDir: 'ChineseParent',
