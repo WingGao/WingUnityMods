@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -112,17 +113,24 @@ namespace WingMod
 
             [HarmonyPrefix]
             [HarmonyPatch(typeof(BattleSceneController), "attackTarget")]
-            static void BattleSceneController_attackTarget_Post(BattleSceneController __instance, ref GFightUnit attacker)
+            static void BattleSceneController_attackTarget_Post(BattleSceneController __instance, ref GFightUnit attacker, ref GActor targetActor)
             {
                 var role = attacker.getRole();
-                var weapon = attacker.getWeapon();
+                var defenderUnit = (GFightUnit) targetActor;
+                var defRole = defenderUnit.getRole();
                 // 自己人武器耐久全满
-                if (attacker.getTeamId() == 0)
+                var list = new GFightUnit[] {attacker, defenderUnit};
+                list.ForEach(f =>
                 {
-                    weapon.count = weapon.getItemData().maxCount;
-                }
-                Instance.Logger.LogInfo($"attack {role.getBasicInfo().name}({role.characterId}) teamId={attacker.getTeamId()}  hp={attacker.getHp()} " +
-                                        $"weaponCount={weapon.count}");
+                    if (f.getTeamId() == 0)
+                    {
+                        var fWeapon = f.getWeapon();
+                        if (fWeapon != null) fWeapon.count = fWeapon.getItemData().maxCount;
+                    }
+                });
+
+                Instance.Logger.LogInfo($"attack {role.getBasicInfo().name}({role.characterId}) teamId={attacker.getTeamId()}  hp={attacker.getHp()} ");
+                Instance.Logger.LogInfo($"defender {defRole.getBasicInfo().name}({defRole.characterId}) teamId={defenderUnit.getTeamId()}  hp={defenderUnit.getHp()} " );
             }
 
             [HarmonyPrefix]
