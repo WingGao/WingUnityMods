@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using BepInEx;
+using BepInEx.Configuration;
 using France.Game.controller;
 using France.Game.model.level;
 using France.Game.model.role;
@@ -11,6 +12,7 @@ using France.Resource;
 using FranceGame.Plugins;
 using Game.Client;
 using HarmonyLib;
+using UnityEngine;
 
 namespace WingMod
 {
@@ -19,6 +21,9 @@ namespace WingMod
     {
         public static Harmony harmony = new Harmony("WingMod");
         public static Plugin Instance;
+        private ConfigEntry<float> ExpMultVal;
+        private ConfigEntry<Boolean> ExpMultEnable;
+        private ConfigEntry<Boolean> ExpGainSkip;
 
 
         private void Awake()
@@ -28,11 +33,18 @@ namespace WingMod
             Logger.LogInfo($"Plugin WingMod is loaded!");
             harmony.PatchAll(typeof(GameLoggerPatcher));
             harmony.PatchAll(typeof(RolePatcher));
+
+            // ExpMultVal = Config.Bind("Global", "ExpMultVal", 1f, new ConfigDescription("经验倍率", new AcceptableValueRange<float>(0f, 10f)));
+            // ExpMultVal = Config.Bind("Global", "ExpMultVal", 1f, new ConfigDescription("经验倍率", new AcceptableValueRange<float>(0f, 10f)));
+            ExpMultVal = Config.Bind("Global", "ExpMultVal", 1f, "经验倍率");
+            ExpMultEnable = Config.Bind("Global", "ExpMultEnable", false, "经验倍率");
+            ExpGainSkip = Config.Bind("Global", "ExpGainSkip", true, "经验动画跳过");
         }
 
         private void OnDestroy()
         {
             harmony?.UnpatchAll();
+            // Config.Clear();
         }
 
         // [HarmonyPatch(typeof(Debugger))]
@@ -109,6 +121,8 @@ namespace WingMod
                 {
                     exp = 3;
                 }
+
+                if (Instance.ExpMultEnable.Value) exp = Mathf.CeilToInt(exp * Instance.ExpMultVal.Value);
             }
 
             [HarmonyPrefix]
@@ -130,7 +144,8 @@ namespace WingMod
                 });
 
                 Instance.Logger.LogInfo($"attack {role.getBasicInfo().name}({role.characterId}) teamId={attacker.getTeamId()}  hp={attacker.getHp()} ");
-                Instance.Logger.LogInfo($"defender {defRole.getBasicInfo().name}({defRole.characterId}) teamId={defenderUnit.getTeamId()}  hp={defenderUnit.getHp()} " );
+                Instance.Logger.LogInfo(
+                    $"defender {defRole.getBasicInfo().name}({defRole.characterId}) teamId={defenderUnit.getTeamId()}  hp={defenderUnit.getHp()} ");
             }
 
             [HarmonyPrefix]
@@ -153,6 +168,23 @@ namespace WingMod
             static void PopDialogManager_setDelay(ref int delayFrame)
             {
                 delayFrame = 0;
+            }
+
+            //经验动画
+            [HarmonyPostfix]
+            [HarmonyPatch(typeof(PopCharacterExpManager), "ShowExpMove")]
+            static void PopCharacterExpManager_ShowExpMove(PopCharacterExpManager __instance, ref float ____speed,ref float ____lastTime)
+            {
+                if (Instance.ExpGainSkip != null && Instance.ExpGainSkip.Value)
+                {
+                    ____speed = 0.01f;
+                    ____lastTime = Time.time;
+                }
+                else
+                {
+                    ____speed = 0.1f;
+                }
+                // return true;
             }
         }
     }

@@ -44,6 +44,9 @@
         <Reference Include="Assembly-CSharp-firstpass, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
             <HintPath>_game\banner_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
         </Reference>
+        <Reference Include="ConfigurationManager">
+          <HintPath>..\libs\bie5_x86\BepInEx\plugins\ConfigurationManager.dll</HintPath>
+        </Reference>
         <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
             <HintPath>_game\banner_Data\Managed\UnityEngine.dll</HintPath>
         </Reference>

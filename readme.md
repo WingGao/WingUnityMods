@@ -17,3 +17,7 @@
 </Reference>
  ```
 * 所有的mod最终都要生成`WingMod.dll`
+
+### BepInEx
+* https://github.com/BepInEx/HarmonyX
+* https://harmony.pardeike.net/articles/patching-injections.html
