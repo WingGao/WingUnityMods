@@ -24,6 +24,7 @@ namespace WingMod
         private ConfigEntry<float> ExpMultVal;
         private ConfigEntry<Boolean> ExpMultEnable;
         private ConfigEntry<Boolean> ExpGainSkip;
+        private ConfigEntry<Boolean> NoStopEnable;
 
 
         private void Awake()
@@ -39,6 +40,7 @@ namespace WingMod
             ExpMultVal = Config.Bind("Global", "ExpMultVal", 1f, "经验倍率");
             ExpMultEnable = Config.Bind("Global", "ExpMultEnable", false, "经验倍率");
             ExpGainSkip = Config.Bind("Global", "ExpGainSkip", true, "经验动画跳过");
+            NoStopEnable = Config.Bind("Global", "NoStopEnable", false, "无限行动");
         }
 
         private void OnDestroy()
@@ -148,6 +150,7 @@ namespace WingMod
                     $"defender {defRole.getBasicInfo().name}({defRole.characterId}) teamId={defenderUnit.getTeamId()}  hp={defenderUnit.getHp()} ");
             }
 
+            // 自己人不死
             [HarmonyPrefix]
             [HarmonyPatch(typeof(GFightUnit), "setHp")]
             static void GFightUnit_setHp_pre(GFightUnit __instance, ref float value)
@@ -159,6 +162,17 @@ namespace WingMod
                     {
                         value = 1;
                     }
+                }
+            }
+            
+            // 自己人无限行动
+            [HarmonyPrefix]
+            [HarmonyPatch(typeof(GFightUnit), "setDone")]
+            static void GFightUnit_setDone(GFightUnit __instance, ref bool done)
+            {
+                if (Instance.NoStopEnable.Value && __instance.getTeamId() == 0 && done)
+                {
+                    done = false;
                 }
             }
 
