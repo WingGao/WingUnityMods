@@ -25,6 +25,10 @@ namespace WingMod
         private ConfigEntry<Boolean> ExpMultEnable;
         private ConfigEntry<Boolean> ExpGainSkip;
         private ConfigEntry<Boolean> NoStopEnable;
+        private ConfigEntry<Boolean> RoleNoDeadEnable;
+        private ConfigEntry<Boolean> RoleHpEnable;
+        private ConfigEntry<Boolean> OneKillEnable;
+        private ConfigEntry<float> RoleMpMultVal;
 
 
         private void Awake()
@@ -41,6 +45,10 @@ namespace WingMod
             ExpMultEnable = Config.Bind("Global", "ExpMultEnable", false, "经验倍率");
             ExpGainSkip = Config.Bind("Global", "ExpGainSkip", true, "经验动画跳过");
             NoStopEnable = Config.Bind("Global", "NoStopEnable", false, "无限行动");
+            RoleNoDeadEnable = Config.Bind("Global", "RoleNoDeadEnable", true, "角色不死亡");
+            RoleHpEnable = Config.Bind("Global", "RoleHpEnable", false, "HP不减");
+            OneKillEnable = Config.Bind("Global", "OneKillEnable", false, "一击必杀");
+            RoleMpMultVal = Config.Bind("Global", "RoleMpMultVal", 1f, "MP倍率");
         }
 
         private void OnDestroy()
@@ -128,6 +136,33 @@ namespace WingMod
             }
 
             [HarmonyPrefix]
+            [HarmonyPatch(typeof(FightController),"doAttack")]
+            [HarmonyPatch(typeof(FightController),"quickNewRound")]
+            static void FightController_doAttack(FightController __instance)
+            {
+                // if (Instance.OneKillEnable.Value) //一击必杀
+                // {
+                //     FightRoundData fightRoundData = __instance.fightRound[__instance.roundStep];
+                //     if (fightRoundData.attacker.getTeamId() == (int) DataType.TEAM_ID.SELF)
+                //     {
+                //         // fightRoundData.extDamage = 99f;
+                //         fightRoundData.damage = -99f;
+                //         Instance.Logger.LogInfo($"FightController_doAttack {fightRoundData.damage} extDamage={fightRoundData.extDamage}");
+                //     }
+                // }
+            }
+
+            [HarmonyPrefix]
+            [HarmonyPatch(typeof(FightRoundData), "execResult")]
+            static void FightRoundData_execResult(FightRoundData __instance)
+            {
+                if (Instance.OneKillEnable.Value && __instance.defender.getTeamId() != (int) DataType.TEAM_ID.SELF)
+                {
+                    __instance.damage = -99f;
+                }
+            }
+            
+            [HarmonyPrefix]
             [HarmonyPatch(typeof(BattleSceneController), "attackTarget")]
             static void BattleSceneController_attackTarget_Post(BattleSceneController __instance, ref GFightUnit attacker, ref GActor targetActor)
             {
@@ -149,19 +184,29 @@ namespace WingMod
                 Instance.Logger.LogInfo(
                     $"defender {defRole.getBasicInfo().name}({defRole.characterId}) teamId={defenderUnit.getTeamId()}  hp={defenderUnit.getHp()} ");
             }
-
-            // 自己人不死
+            
             [HarmonyPrefix]
             [HarmonyPatch(typeof(GFightUnit), "setHp")]
             static void GFightUnit_setHp_pre(GFightUnit __instance, ref float value)
             {
                 if (__instance.getTeamId() == 0)
                 {
-                    //自己人
-                    if (value <= 1)
+                    //不掉血
+                    if (Instance.RoleHpEnable.Value) value = __instance.getRole().hpMax;
+                    //自己人不死
+                    if (Instance.RoleNoDeadEnable.Value && value <= 1)
                     {
                         value = 1;
                     }
+                }
+            }
+            [HarmonyPrefix]
+            [HarmonyPatch(typeof(GFightUnit), "modifyMp")]
+            static void GFightUnit_modifyMp(GFightUnit __instance, ref float value)
+            {
+                if (__instance.getTeamId() == 0)
+                {
+                    value *= Instance.RoleMpMultVal.Value;
                 }
             }
             
