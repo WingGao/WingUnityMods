@@ -21,3 +21,7 @@
 ### BepInEx
 * https://github.com/BepInEx/HarmonyX
 * https://harmony.pardeike.net/articles/patching-injections.html
+* https://docs.bepinex.dev/articles/dev_guide/dev_tools.html
+插件版本
+* https://github.com/ManlyMarco/RuntimeUnityEditor v3.0
+* 
