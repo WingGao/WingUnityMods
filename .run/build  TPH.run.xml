@@ -1,0 +1,5 @@
+﻿<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="build  TPH" type="NodeJSConfigurationType" application-parameters="-g TPH -s" path-to-js-file="index.js" working-dir="$PROJECT_DIR$/scripts">
+    <method v="2" />
+  </configuration>
+</component>

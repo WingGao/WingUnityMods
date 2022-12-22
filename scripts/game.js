@@ -1,5 +1,12 @@
 ﻿const ModConfigs = [
     {
+        steamId: 535930,
+        name: '双点医院',
+        gameDir: 'TPH',
+        modProjectName: 'TPHospital.umm',
+        ummTargetDir: 'Mods\\WingMod',
+    },
+    {
         steamId: 994730,
         name: '圣女战旗',
         gameDir: 'Banner of the Maid',
