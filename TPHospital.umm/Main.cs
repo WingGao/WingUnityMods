@@ -24,6 +24,8 @@ namespace WingMod
         [Draw("招聘技能")] public JobQualifiEnum JobQualificationOp = JobQualifiEnum.Off;
         [Draw("招聘最大等级")] public bool JobMaxRank = true;
         [Draw("招聘等待加成")] public float JobWaitMul = 0.5f;
+        [Draw("房间治疗加成")] public float RoomTreatmentMul = 2f;
+        [Draw("房间诊断加成")] public float RoomDiagnosisMul = 2f;
 
         [Header("员工")] [Draw("休息倍率")] public float StaffBreakMul = 0.5f;
 
@@ -112,6 +114,34 @@ namespace WingMod
             }
         }
 
+        /// <summary>
+        /// 房间诊断加成
+        /// </summary>
+        [HarmonyPatch(typeof(RoomModifierDiagnosis))]
+        static class RoomModifierDiagnosisPatch
+        {
+            [HarmonyPatch("Apply")]
+            [HarmonyPrefix]
+            static void ApplyPatch(ref float ____percentage)
+            {
+                if (____percentage >= 0) ____percentage = settings.RoomDiagnosisMul;
+            }
+        }
+
+        /// <summary>
+        /// 房间治疗加成
+        /// </summary>
+        [HarmonyPatch(typeof(RoomModifierTreatment))]
+        static class RoomModifierTreatmentPatch
+        {
+            [HarmonyPatch("Apply")]
+            [HarmonyPrefix]
+            static void ApplyPatch(ref float ____percentage)
+            {
+                if (____percentage >= 0) ____percentage = settings.RoomTreatmentMul;
+            }
+        }
+
         //员工补丁
         [HarmonyPatch(typeof(Staff))]
         static class StaffPatch
@@ -154,8 +184,13 @@ namespace WingMod
             {"治疗III", "Qualification/Doctor_Treatment_3_Name"},
             {"治疗IV", "Qualification/Doctor_Treatment_4_Name"},
             {"治疗V", "Qualification/Doctor_Treatment_5_Name"},
+            {"外科学", "Qualification/Doctor_Surgery_1_Name"},
+            {"外科学II", "Qualification/Doctor_Surgery_2_Name"},
+            {"外科学III", "Qualification/Doctor_Surgery_3_Name"},
+            {"外科学IV", "Qualification/Doctor_Surgery_4_Name"},
+            {"外科学V", "Qualification/Doctor_Surgery_5_Name"},
             {"放射学", "Qualification/Doctor_Radiology_1_Name"},
-            {"遗传病学","Qualification/Doctor_Genetics_1_Name"}, 
+            {"遗传病学", "Qualification/Doctor_Genetics_1_Name"},
             //护士
             {"病房管理", "Qualification/Nurse_WardManagement_1_Name"},
             {"病房管理II", "Qualification/Nurse_WardManagement_2_Name"},
@@ -236,6 +271,7 @@ namespace WingMod
                                     new List<String> {"精神病学", "精神病学II", "精神病学III", "精神病学IV", "精神病学V"},
                                     new List<String> {"治疗", "治疗II", "治疗III", "治疗IV", "治疗V"},
                                     new List<String> {"研究", "研究II", "研究III", "研究IV", "研究V"},
+                                    new List<String> {"外科学", "外科学II", "外科学III", "外科学IV", "外科学V"},
                                     new List<String> {"放射学", "诊断学", "诊断学II", "诊断学III", "工作激情"},
                                     new List<String> {"遗传病学", "治疗", "治疗II", "治疗III", "治疗IV"},
                                 };
