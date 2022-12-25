@@ -126,6 +126,12 @@ namespace WingMod
             {
                 if (____percentage >= 0) ____percentage = settings.RoomDiagnosisMul;
             }
+            [HarmonyPatch("Percentage",MethodType.Getter)]
+            [HarmonyPrefix]
+            static void PercentagePatch(ref float ____percentage)
+            {
+                if (____percentage >= 0) ____percentage = settings.RoomDiagnosisMul;
+            }
         }
 
         /// <summary>
@@ -137,6 +143,12 @@ namespace WingMod
             [HarmonyPatch("Apply")]
             [HarmonyPrefix]
             static void ApplyPatch(ref float ____percentage)
+            {
+                if (____percentage >= 0) ____percentage = settings.RoomTreatmentMul;
+            }
+            [HarmonyPatch("Percentage",MethodType.Getter)]
+            [HarmonyPrefix]
+            static void PercentagePatch(ref float ____percentage)
             {
                 if (____percentage >= 0) ____percentage = settings.RoomTreatmentMul;
             }
