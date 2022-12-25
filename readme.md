@@ -19,6 +19,11 @@
  ```
 * UMM => 所有的mod最终都要生成`WingMod.dll` 
 
+### UMM
+* https://wiki.nexusmods.com/index.php/How_to_create_mod_for_unity_game
+* https://wiki.nexusmods.com/index.php/How_to_render_mod_options_(UMM)
+* 
+
 ### BepInEx
 * https://github.com/BepInEx/HarmonyX
 * https://harmony.pardeike.net/articles/patching-injections.html
