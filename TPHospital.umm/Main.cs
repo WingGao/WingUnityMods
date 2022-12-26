@@ -28,6 +28,7 @@ namespace WingMod
         [Draw("房间诊断加成")] public float RoomDiagnosisMul = 2f;
 
         [Header("员工")] [Draw("休息倍率")] public float StaffBreakMul = 0.5f;
+        [Draw("工资倍率")] public float StaffSalaryMul = 1f;
 
         [Header("Debug")] [Draw("ShowDebugInfo")]
         public bool ShowDebugInfo = false;
@@ -126,7 +127,8 @@ namespace WingMod
             {
                 if (____percentage >= 0) ____percentage = settings.RoomDiagnosisMul;
             }
-            [HarmonyPatch("Percentage",MethodType.Getter)]
+
+            [HarmonyPatch("Percentage", MethodType.Getter)]
             [HarmonyPrefix]
             static void PercentagePatch(ref float ____percentage)
             {
@@ -146,7 +148,8 @@ namespace WingMod
             {
                 if (____percentage >= 0) ____percentage = settings.RoomTreatmentMul;
             }
-            [HarmonyPatch("Percentage",MethodType.Getter)]
+
+            [HarmonyPatch("Percentage", MethodType.Getter)]
             [HarmonyPrefix]
             static void PercentagePatch(ref float ____percentage)
             {
@@ -166,6 +169,16 @@ namespace WingMod
             static void GetBreakLengthPostfix(ref float __result)
             {
                 __result *= settings.StaffBreakMul;
+            }
+
+            /// <summary>
+            /// 修改员工工资
+            /// </summary>
+            [HarmonyPatch("GetSalary")]
+            [HarmonyPrefix]
+            static void GetSalaryPatch(ref int ____salary)
+            {
+                ____salary = Mathf.RoundToInt(____salary * settings.StaffSalaryMul);
             }
         }
 
