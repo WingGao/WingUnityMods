@@ -325,7 +325,7 @@ namespace WingMod
                                 {
                                     new List<String> {"维护", "维护II", "维护III", "维护IV", "维护V"},
                                     new List<String> {"机械学", "机械学II", "机械学III", "机械学IV", "机械学V"},
-                                    new List<String> {"捉鬼术", "工作激情", "客户服务", "客户服务II", "客户服务III"},
+                                    new List<String> {"捉鬼术", "工作激情", "维护", "维护II", "维护III"},
                                 };
                                 break;
                         }
