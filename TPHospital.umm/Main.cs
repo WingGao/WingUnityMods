@@ -7,6 +7,7 @@ using HarmonyLib;
 using TH20;
 using UnityEngine;
 using UnityModManagerNet;
+using WingUtil.Harmony;
 
 namespace WingMod
 {
@@ -93,11 +94,45 @@ namespace WingMod
         static void OnGUI(UnityModManager.ModEntry modEntry)
         {
             settings.Draw(modEntry);
+            BuildUserJobPanel();
         }
 
         static void OnSaveGUI(UnityModManager.ModEntry modEntry)
         {
             settings.Save(modEntry);
+        }
+
+        // 获取全局App
+        static App GetApp()
+        {
+            var sc = GameObject.FindObjectOfType<MainScript>();
+            return AccessTools.Field(typeof(MainScript), "_app").GetValue(sc) as App;
+        }
+
+        // 构建员工模板
+        static void BuildUserJobPanel()
+        {
+            for (var i = 0; i <= 3; i++)
+            {
+                GUILayout.BeginHorizontal();
+                var type = (StaffDefinition.Type) i;
+                GUILayout.Label(type.ToString());
+                UserJobs[type].ForEach(x =>
+                {
+                    if (GUILayout.Button(x.Name))
+                    {
+                        LogF($"点击了 {x.Name}");
+                        var jam = GetApp().Level.JobApplicantManager;
+                        var pool = jam.GetJobApplicantPool(type);
+                        if (pool.Applicants.Count > 0)
+                        {
+                            var job = pool.Applicants.First();
+                            WingAccessTools.SetPropertyValue(job, "Qualifications", x.GetDefinitionSolts(job.Qualifications.Count));
+                        }
+                    }
+                });
+                GUILayout.EndHorizontal();
+            }
         }
 
         //全局
@@ -251,6 +286,118 @@ namespace WingMod
             {"工作激情", "Qualification/General_Speed_1_Name"},
         };
 
+        public class UserJob
+        {
+            public String Name;
+            public List<String> Qualifications;
+
+            public List<QualificationSlot> GetDefinitionSolts(int num)
+            {
+                var qualDict = GetApp().Level.JobApplicantManager.Qualifications.List.ToDictionary(
+                    x => x.Key.NameLocalised.Term,
+                    x => x.Key);
+                return Qualifications.Select(x =>
+                {
+                    var qualTerm = CnTermsDict[x];
+                    QualificationDefinition definition = qualDict[qualTerm];
+                    return new QualificationSlot(definition, true);
+                }).ToList().GetRange(0, num);
+            }
+        }
+
+        private static Dictionary<StaffDefinition.Type, List<UserJob>> UserJobs =
+            new Dictionary<StaffDefinition.Type, List<UserJob>>
+            {
+                {
+                    StaffDefinition.Type.Doctor, new List<UserJob>
+                    {
+                        new UserJob
+                        {
+                            Name = "全科",
+                            Qualifications = new List<String> {"全科诊疗", "全科诊疗II", "全科诊疗III", "全科诊疗IV", "全科诊疗V"}
+                        },
+                        new UserJob
+                        {
+                            Name = "精神",
+                            Qualifications = new List<String> {"精神病学", "精神病学II", "精神病学III", "精神病学IV", "精神病学V"}
+                        },
+                        new UserJob
+                        {
+                            Name = "治疗", Qualifications = new List<String> {"治疗", "治疗II", "治疗III", "治疗IV", "治疗V"}
+                        },
+                        new UserJob
+                        {
+                            Name = "研究", Qualifications = new List<String> {"研究", "研究II", "研究III", "研究IV", "研究V"}
+                        },
+                        new UserJob
+                        {
+                            Name = "外科", Qualifications = new List<String> {"外科学", "外科学II", "外科学III", "外科学IV", "外科学V"}
+                        },
+                        new UserJob
+                        {
+                            Name = "放射", Qualifications = new List<String> {"放射学", "诊断学", "诊断学II", "诊断学III", "工作激情"}
+                        },
+                        new UserJob
+                        {
+                            Name = "DNA", Qualifications = new List<String> {"遗传病学", "治疗", "治疗II", "治疗III", "治疗IV"}
+                        },
+                    }
+                },
+                {
+                    StaffDefinition.Type.Nurse, new List<UserJob>
+                    {
+                        new UserJob
+                        {
+                            Name = "药房", Qualifications = new List<String> {"药房管理", "注射", "治疗", "治疗II", "治疗III"}
+                        },
+                        new UserJob
+                        {
+                            Name = "治疗", Qualifications = new List<String> {"治疗", "治疗II", "治疗III", "治疗IV", "治疗V"}
+                        },
+                        new UserJob
+                        {
+                            Name = "诊断", Qualifications = new List<String> {"诊断学", "诊断学II", "诊断学III", "诊断学IV", "诊断学V"}
+                        },
+                        new UserJob
+                        {
+                            Name = "病房",
+                            Qualifications = new List<String> {"病房管理", "病房管理II", "病房管理III", "病房管理IV", "病房管理V"}
+                        },
+                    }
+                },
+                {
+                    StaffDefinition.Type.Assistant, new List<UserJob>
+                    {
+                        new UserJob
+                        {
+                            Name = "客户",
+                            Qualifications = new List<String> {"客户服务", "客户服务II", "客户服务III", "客户服务IV", "客户服务V"}
+                        },
+                        new UserJob
+                        {
+                            Name = "营销", Qualifications = new List<String> {"营销学", "营销学II", "营销学III", "营销学IV", "营销学V"}
+                        },
+                    }
+                },
+                {
+                    StaffDefinition.Type.Janitor, new List<UserJob>
+                    {
+                        new UserJob
+                        {
+                            Name = "维护", Qualifications = new List<String> {"维护", "维护II", "维护III", "维护IV", "维护V"}
+                        },
+                        new UserJob
+                        {
+                            Name = "机械", Qualifications = new List<String> {"机械学", "机械学II", "机械学III", "机械学IV", "机械学V"}
+                        },
+                        new UserJob
+                        {
+                            Name = "捉鬼", Qualifications = new List<String> {"捉鬼术", "工作激情", "维护", "维护II", "维护III"}
+                        },
+                    }
+                },
+            };
+
         [HarmonyPatch(typeof(JobApplicant))]
         static class JobApplicantPatch
         {
@@ -284,51 +431,25 @@ namespace WingMod
                         break;
                     case JobQualifiEnum.User: //根据模板添加
                     {
-                        var temps = new List<List<String>>();
                         var tempIdx = 0;
                         switch (__instance.Definition._type)
                         {
                             case StaffDefinition.Type.Doctor:
                                 tempIdx = DoctorIdx++;
-                                temps = new List<List<String>>
-                                {
-                                    new List<String> {"全科诊疗", "全科诊疗II", "全科诊疗III", "全科诊疗IV", "全科诊疗V"},
-                                    new List<String> {"精神病学", "精神病学II", "精神病学III", "精神病学IV", "精神病学V"},
-                                    new List<String> {"治疗", "治疗II", "治疗III", "治疗IV", "治疗V"},
-                                    new List<String> {"研究", "研究II", "研究III", "研究IV", "研究V"},
-                                    new List<String> {"外科学", "外科学II", "外科学III", "外科学IV", "外科学V"},
-                                    new List<String> {"放射学", "诊断学", "诊断学II", "诊断学III", "工作激情"},
-                                    new List<String> {"遗传病学", "治疗", "治疗II", "治疗III", "治疗IV"},
-                                };
                                 break;
                             case StaffDefinition.Type.Nurse:
                                 tempIdx = NurserIdx++;
-                                temps = new List<List<String>>
-                                {
-                                    new List<String> {"药房管理", "注射", "治疗", "治疗II", "治疗III"},
-                                    new List<String> {"治疗", "治疗II", "治疗III", "治疗IV", "治疗V"},
-                                    new List<String> {"诊断学", "诊断学II", "诊断学III", "诊断学IV", "诊断学V"},
-                                    new List<String> {"病房管理", "病房管理II", "病房管理III", "病房管理IV", "病房管理V"},
-                                };
                                 break;
                             case StaffDefinition.Type.Assistant:
                                 tempIdx = AssistantIdx++;
-                                temps = new List<List<String>>
-                                {
-                                    new List<String> {"客户服务", "客户服务II", "客户服务III", "客户服务IV", "客户服务V"},
-                                    new List<String> {"营销学", "营销学II", "营销学III", "营销学IV", "营销学V"},
-                                };
+
                                 break;
                             case StaffDefinition.Type.Janitor:
                                 tempIdx = JanitorIdx++;
-                                temps = new List<List<String>>
-                                {
-                                    new List<String> {"维护", "维护II", "维护III", "维护IV", "维护V"},
-                                    new List<String> {"机械学", "机械学II", "机械学III", "机械学IV", "机械学V"},
-                                    new List<String> {"捉鬼术", "工作激情", "维护", "维护II", "维护III"},
-                                };
                                 break;
                         }
+
+                        var temps = UserJobs[__instance.Definition._type];
 
                         int capacity = __instance.MaxQualifications;
                         var qualDict = level.JobApplicantManager.Qualifications.List.ToDictionary(
@@ -338,7 +459,7 @@ namespace WingMod
                         __instance.Qualifications.Clear();
                         if (tempId >= 0)
                         {
-                            var tempQuals = temps[tempIdx % temps.Count];
+                            var tempQuals = temps[tempIdx % temps.Count].Qualifications;
                             for (int index = 0; index < capacity && index < tempQuals.Count; ++index)
                             {
                                 var qualCn = tempQuals[index];

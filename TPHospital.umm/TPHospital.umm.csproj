@@ -48,6 +48,9 @@
         <Reference Include="UnityEngine.CoreModule">
           <HintPath>_game\TPH_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
         </Reference>
+        <Reference Include="UnityEngine.IMGUIModule">
+          <HintPath>_game\TPH_Data\Managed\UnityEngine.IMGUIModule.dll</HintPath>
+        </Reference>
         <Reference Include="UnityModManager">
           <HintPath>..\libs\dumm\UnityModManager.dll</HintPath>
         </Reference>
@@ -60,6 +63,12 @@
       <Content Include="Info.json">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </Content>
+    </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\WingUtil.Harmony\WingUtil.Harmony.csproj">
+        <Project>{cf9878bc-d9dd-47d2-acfc-a8042fd3b337}</Project>
+        <Name>WingUtil.Harmony</Name>
+      </ProjectReference>
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
     <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
