@@ -127,7 +127,8 @@ namespace WingMod
                         if (pool.Applicants.Count > 0)
                         {
                             var job = pool.Applicants.First();
-                            WingAccessTools.SetPropertyValue(job, "Qualifications", x.GetDefinitionSolts(job.Qualifications.Count));
+                            LogF($"替换 {job.Name} > {x.Name}");
+                            WingAccessTools.SetPropertyValue(job, "Qualifications", x.GetDefinitionSolts(job.MaxQualifications));
                         }
                     }
                 });
