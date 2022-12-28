@@ -27,9 +27,13 @@ namespace WingMod
         [Draw("招聘等待加成")] public float JobWaitMul = 0.5f;
         [Draw("房间治疗加成")] public float RoomTreatmentMul = 2f;
         [Draw("房间诊断加成")] public float RoomDiagnosisMul = 2f;
+        [Draw("病人不死")] public bool PatientNoDead = true;
+        [Draw("病人幸福")] public bool PatientHappy = true;
 
         [Header("员工")] [Draw("休息倍率")] public float StaffBreakMul = 0.5f;
         [Draw("工资倍率")] public float StaffSalaryMul = 1f;
+        [Draw("活力不减")] public bool StaffEneryOff = true;
+
 
         [Header("Debug")] [Draw("ShowDebugInfo")]
         public bool ShowDebugInfo = false;
@@ -95,6 +99,7 @@ namespace WingMod
         {
             settings.Draw(modEntry);
             BuildUserJobPanel();
+            BuildOtherBtns();
         }
 
         static void OnSaveGUI(UnityModManager.ModEntry modEntry)
@@ -136,6 +141,31 @@ namespace WingMod
             }
         }
 
+        static void BuildOtherBtns()
+        {
+            //其他
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("其他");
+            if (GUILayout.Button("垃圾50%"))
+            {
+                GetApp().Level.WorldState.GetRoomItemsWithMaintenanceDescription(JobMaintenance.JobDescription.Litter).ForEach(item =>
+                {
+                    item.MaintenanceLevel.SetValue(50f, true);
+                    LogF($"清空 {item.Name} {item.MaintenanceLevel}");
+                });
+            }
+
+            if (GUILayout.Button("厕所50%"))
+            {
+                GetApp().Level.WorldState.GetRoomItemsWithMaintenanceDescription(JobMaintenance.JobDescription.BlockedToilet).ForEach(item =>
+                {
+                    item.MaintenanceLevel.SetValue(50f, true);
+                });
+            }
+
+            GUILayout.EndHorizontal();
+        }
+
         //全局
         [HarmonyPatch(typeof(GameAlgorithms))]
         static class GameAlgorithmsPatch
@@ -148,6 +178,29 @@ namespace WingMod
             static void Postfix(ref float __result)
             {
                 __result *= settings.LearnMul;
+            }
+
+            /// <summary>
+            /// 病人治疗
+            /// </summary>
+            [HarmonyPatch("CalculateTreatmentOutcome")]
+            [HarmonyPostfix]
+            static void CalculateTreatmentOutcomePatch(ref Treatment.Outcome __result)
+            {
+                //病人不死
+                if (settings.PatientNoDead && __result == Treatment.Outcome.Death) __result = Treatment.Outcome.Ineffective;
+            }
+        }
+
+
+        [HarmonyPatch(typeof(CharacterHappinessComponent))]
+        static class CharacterHappinessComponentPatch
+        {
+            [HarmonyPatch("TickInternal")]
+            [HarmonyPrefix]
+            static void TickInternalPatch(ref Character ___Character)
+            {
+                if (settings.PatientHappy && ___Character.Happiness != null) ___Character.Happiness.SetValue(100, false);
             }
         }
 
@@ -215,6 +268,21 @@ namespace WingMod
             static void GetSalaryPatch(ref int ____salary)
             {
                 ____salary = Mathf.RoundToInt(____salary * settings.StaffSalaryMul);
+            }
+
+            /// <summary>
+            /// 活力
+            /// </summary>
+            [HarmonyPatch("UpdateEnergy")]
+            [HarmonyPrefix]
+            static bool UpdateEnergyPatch(Staff __instance)
+            {
+                if (settings.StaffEneryOff && __instance.Energy != null)
+                {
+                    __instance.Energy.Modify(1, 1);
+                    return false;
+                }
+                else return true;
             }
         }
 
