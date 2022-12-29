@@ -286,6 +286,22 @@ namespace WingMod
             }
         }
 
+        //病人补丁
+        [HarmonyPatch(typeof(Patient))]
+        static class PatientPatch
+        {
+            /// <summary>
+            /// 病人不死
+            /// </summary>
+            /// <param name="__instance"></param>
+            [HarmonyPatch("UpdateAttributes")]
+            [HarmonyPrefix]
+            static void UpdateAttributesPatch(Patient __instance)
+            {
+                if (settings.PatientNoDead && __instance.Health.Value() <= 5) __instance.Health.SetValue(10, true);
+            }
+        }
+
         private static Dictionary<String, String> CnTermsDict = new Dictionary<string, string>
         {
             {"诊断学", "Qualification/Doctor_Diagnosis_1_Name"},
