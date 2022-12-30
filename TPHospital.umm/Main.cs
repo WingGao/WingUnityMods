@@ -29,6 +29,7 @@ namespace WingMod
         [Draw("房间诊断加成")] public float RoomDiagnosisMul = 2f;
         [Draw("病人不死")] public bool PatientNoDead = true;
         [Draw("病人幸福")] public bool PatientHappy = true;
+        [Draw("角色需求不减")] public bool CharNoNeed = true;
 
         [Header("员工")] [Draw("休息倍率")] public float StaffBreakMul = 0.5f;
         [Draw("工资倍率")] public float StaffSalaryMul = 1f;
@@ -97,9 +98,9 @@ namespace WingMod
 
         static void OnGUI(UnityModManager.ModEntry modEntry)
         {
-            settings.Draw(modEntry);
             BuildUserJobPanel();
             BuildOtherBtns();
+            settings.Draw(modEntry);
         }
 
         static void OnSaveGUI(UnityModManager.ModEntry modEntry)
@@ -114,6 +115,19 @@ namespace WingMod
             return AccessTools.Field(typeof(MainScript), "_app").GetValue(sc) as App;
         }
 
+        // 更改招聘
+        static void ChangeJobApplicant(StaffDefinition.Type type, List<QualificationSlot> solts)
+        {
+            var jam = GetApp().Level.JobApplicantManager;
+            var pool = jam.GetJobApplicantPool(type);
+            if (pool.Applicants.Count > 0)
+            {
+                var job = pool.Applicants.First();
+                if (solts.Count == 0) job.Qualifications.Clear();
+                else WingAccessTools.SetPropertyValue(job, "Qualifications", solts.GetRange(0, job.MaxQualifications));
+            }
+        }
+
         // 构建员工模板
         static void BuildUserJobPanel()
         {
@@ -122,19 +136,13 @@ namespace WingMod
                 GUILayout.BeginHorizontal();
                 var type = (StaffDefinition.Type) i;
                 GUILayout.Label(type.ToString());
+                if (GUILayout.Button("空")) ChangeJobApplicant(type, new List<QualificationSlot>());
                 UserJobs[type].ForEach(x =>
                 {
                     if (GUILayout.Button(x.Name))
                     {
                         LogF($"点击了 {x.Name}");
-                        var jam = GetApp().Level.JobApplicantManager;
-                        var pool = jam.GetJobApplicantPool(type);
-                        if (pool.Applicants.Count > 0)
-                        {
-                            var job = pool.Applicants.First();
-                            LogF($"替换 {job.Name} > {x.Name}");
-                            WingAccessTools.SetPropertyValue(job, "Qualifications", x.GetDefinitionSolts(job.MaxQualifications));
-                        }
+                        ChangeJobApplicant(type, x.GetDefinitionSolts(5));
                     }
                 });
                 GUILayout.EndHorizontal();
@@ -203,6 +211,22 @@ namespace WingMod
                 if (settings.PatientHappy && ___Character.Happiness != null) ___Character.Happiness.SetValue(100, false);
             }
         }
+
+        /// <summary>
+        /// 角色需求
+        /// </summary>
+        [HarmonyPatch(typeof(CharacterAttributes))]
+        static class CharacterAttributesPatch
+        {
+            [HarmonyPatch("GetAttribute")]
+            [HarmonyPostfix]
+            static void GetAttributePatch(CharacterAttributes.Type type, ref AttributeFloat __result)
+            {
+                if (settings.CharNoNeed && (type == CharacterAttributes.Type.Hunger || type == CharacterAttributes.Type.Thirst || type == CharacterAttributes.Type.Toilet))
+                    __result.SetValue(1, true);
+            }
+        }
+
 
         /// <summary>
         /// 房间诊断加成
@@ -537,7 +561,9 @@ namespace WingMod
                         var temps = UserJobs[__instance.Definition._type];
 
                         int capacity = __instance.MaxQualifications;
-                        var qualDict = level.JobApplicantManager.Qualifications.List.ToDictionary(
+                        var qs = level?.JobApplicantManager?.Qualifications;
+                        if (qs == null) return;
+                        var qualDict = qs.List.ToDictionary(
                             x => x.Key.NameLocalised.Term,
                             x => x.Key);
                         var tempId = RandomUtils.GlobalRandomInstance.Next(-1, temps.Count); //有概率为空
@@ -584,6 +610,21 @@ namespace WingMod
             static void GetTimeUntilNextApplicantPatch(ref float __result)
             {
                 __result *= settings.JobWaitMul;
+            }
+        }
+
+        /// <summary>
+        /// 连眉虫
+        /// </summary>
+        [HarmonyPatch(typeof(MonoBeastManager))]
+        static class MonoBeastManagerPatch
+        {
+            // 总是可选
+            [HarmonyPatch("CursorDisabled")]
+            [HarmonyPostfix]
+            static void CursorDisabledPatch(ref bool __result)
+            {
+                __result = false;
             }
         }
     }
