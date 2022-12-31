@@ -171,6 +171,8 @@ namespace WingMod
                 });
             }
 
+            if (GUILayout.Button("随机病人")) GetApp().Level.CharacterManager.Debug_SpawnSomePatients();
+
             GUILayout.EndHorizontal();
         }
 
@@ -222,7 +224,8 @@ namespace WingMod
             [HarmonyPostfix]
             static void GetAttributePatch(CharacterAttributes.Type type, ref AttributeFloat __result)
             {
-                if (settings.CharNoNeed && (type == CharacterAttributes.Type.Hunger || type == CharacterAttributes.Type.Thirst || type == CharacterAttributes.Type.Toilet))
+                if (settings.CharNoNeed && (type == CharacterAttributes.Type.Hunger || type == CharacterAttributes.Type.Thirst ||
+                                            type == CharacterAttributes.Type.Toilet))
                     __result.SetValue(1, true);
             }
         }
