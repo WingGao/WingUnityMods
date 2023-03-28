@@ -1,5 +1,12 @@
 ﻿const ModConfigs = [
     {
+        steamId: 1432860,
+        name: 'Sun Haven',
+        gameDir: 'Sun Haven',
+        modProjectName: 'SunHaven.WingMod.bie5',
+        bie: 5
+    },
+    {
         steamId: 535930,
         name: '双点医院',
         gameDir: 'TPH',
