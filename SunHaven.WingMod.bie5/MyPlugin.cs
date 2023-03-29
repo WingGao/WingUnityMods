@@ -1,20 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
 using UnityEngine;
+using UniverseLib.Input;
 using Wish;
+using Logger = BepInEx.Logging.Logger;
 
 namespace SunHaven.WingMod.bie5
 {
-    [BepInPlugin("WingMod", "WingMod", "0.0.2")]
-    public class Plugin : BaseUnityPlugin
+    [BepInPlugin(GUID, NAME, VERSION)]
+    public class MyPlugin : BaseUnityPlugin
     {
+        public const string GUID = "WingMod";
+        public const string NAME = "WingMod";
+        public const string VERSION = "0.0.2";
         public static Harmony harmony = new Harmony("WingMod");
-        public static Plugin Instance;
+        public static MyPlugin Instance;
         private ConfigEntry<int> CnfOreDropMul; //矿石掉落倍率
+
+        public static void Log(String s)
+        {
+            Instance.Logger.LogInfo(s);
+        }
 
         private void Awake()
         {
@@ -26,6 +37,12 @@ namespace SunHaven.WingMod.bie5
             //手动patch
             // var randomArray_RandomItem = AccessTools.Method(typeof(RandomArray), nameof(RandomArray.RandomItem), new Type[] {typeof(int).MakeByRefType()});
             // harmony.Patch(randomArray_RandomItem, null, new HarmonyMethod(AccessTools.Method(typeof(MyPatcher), nameof(MyPatcher.RandomArray_Patch))));
+
+            UniverseLib.Universe.Init(1f, () => PluginUI.Init(), ((s, type) => Logger.LogInfo(s)), new()
+            {
+                Disable_EventSystem_Override = false,
+                Force_Unlock_Mouse = true,
+            });
         }
 
 
@@ -33,6 +50,15 @@ namespace SunHaven.WingMod.bie5
         {
             harmony?.UnpatchSelf();
             // Config.Clear();
+        }
+
+        private void Update()
+        {
+            if (PluginUI.uiBase != null)
+            {
+                if (InputManager.GetKeyDown(KeyCode.F2))
+                    PluginUI.Instance.ToggleUI();
+            }
         }
 
         //矿石ID

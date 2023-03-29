@@ -11,6 +11,8 @@
         <AssemblyName>WingMod</AssemblyName>
         <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
         <FileAlignment>512</FileAlignment>
+        <LangVersion>latest</LangVersion>
+        <Nullable>enable</Nullable>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
         <PlatformTarget>AnyCPU</PlatformTarget>
@@ -41,6 +43,9 @@
         <Reference Include="BepInEx">
           <HintPath>..\libs\bie5_x64\BepInEx\core\BepInEx.dll</HintPath>
         </Reference>
+        <Reference Include="Sirenix.Serialization">
+          <HintPath>_game\Sun Haven_Data\Managed\Sirenix.Serialization.dll</HintPath>
+        </Reference>
         <Reference Include="SunHaven.Core">
           <HintPath>_game\Sun Haven_Data\Managed\SunHaven.Core.dll</HintPath>
         </Reference>
@@ -54,10 +59,27 @@
         <Reference Include="UnityEngine.CoreModule">
           <HintPath>_game\Sun Haven_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
         </Reference>
+        <Reference Include="UnityEngine.TextRenderingModule">
+          <HintPath>_game\Sun Haven_Data\Managed\UnityEngine.TextRenderingModule.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.UI">
+          <HintPath>_game\Sun Haven_Data\Managed\UnityEngine.UI.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.UIModule">
+          <HintPath>..\WarmSnow.WingMod.umm\_game\UnityEngine.UIModule.dll</HintPath>
+        </Reference>
+        <Reference Include="UniverseLib.Mono, Version=1.5.1.0, Culture=neutral, processorArchitecture=MSIL">
+          <HintPath>..\packages\UniverseLib.Mono.1.5.1\lib\net35\UniverseLib.Mono.dll</HintPath>
+        </Reference>
     </ItemGroup>
     <ItemGroup>
-        <Compile Include="Plugin.cs" />
+        <Compile Include="MyPlugin.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
+        <Compile Include="UI.cs" />
+    </ItemGroup>
+    <ItemGroup>
+      <None Include="App.config" />
+      <None Include="packages.config" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
     <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
