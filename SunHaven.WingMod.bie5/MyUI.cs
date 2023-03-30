@@ -10,18 +10,17 @@ using Object = UnityEngine.Object;
 
 namespace SunHaven.WingMod.bie5
 {
-    public class PluginUI : PanelBase
+    public class MyUI : PanelBase
     {
-        public static PluginUI Instance { get; internal set; }
+        public static MyUI Instance { get; internal set; }
         internal static UIBase uiBase = null;
         public override string Name => $"{MyPlugin.NAME} v{MyPlugin.VERSION}";
         public override int MinWidth => 500;
         public override int MinHeight => 200;
         public override Vector2 DefaultAnchorMin => new(0.2f, 0.02f);
         public override Vector2 DefaultAnchorMax => new(0.8f, 0.5f);
-        public bool ShowUI = false;
 
-        public PluginUI(UIBase owner) : base(owner)
+        public MyUI(UIBase owner) : base(owner)
         {
             Instance = this;
         }
@@ -34,16 +33,15 @@ namespace SunHaven.WingMod.bie5
         internal static void Init()
         {
             uiBase = UniversalUI.RegisterUI(MyPlugin.GUID, null);
-            new PluginUI(uiBase);
+            new MyUI(uiBase);
             // Force refresh of anchors etc
-            Canvas.ForceUpdateCanvases();
+            // Canvas.ForceUpdateCanvases();
         }
 
-        public void ToggleUI()
+        public override void SetActive(bool active)
         {
-            Instance.ShowUI = !Instance.ShowUI;
-            UniversalUI.SetUIActive(MyPlugin.GUID, Instance.ShowUI);
-            Instance.SetActive(Instance.ShowUI);
+            UniversalUI.SetUIActive(MyPlugin.GUID, active);
+            base.SetActive(active);
         }
 
         protected override void ConstructPanelContent()
@@ -53,6 +51,7 @@ namespace SunHaven.WingMod.bie5
             GameObject cateGroup = UIFactory.CreateVerticalGroup(mainGroup, "Category", true, false, true, true, 2);
             var teleportPanel = CreateTeleportPanel();
             var btnTeleport = UIFactory.CreateButton(cateGroup, "传送", "传送");
+            UIFactory.SetLayoutElement(btnTeleport.GameObject, 5, 30, 1);
             btnTeleport.OnClick += () => teleportPanel.SetActive(!teleportPanel.activeSelf);
         }
 

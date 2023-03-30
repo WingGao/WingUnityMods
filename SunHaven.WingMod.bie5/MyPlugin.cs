@@ -21,6 +21,7 @@ namespace SunHaven.WingMod.bie5
         public static Harmony harmony = new Harmony("WingMod");
         public static MyPlugin Instance;
         private ConfigEntry<int> CnfOreDropMul; //矿石掉落倍率
+        private ConfigEntry<float> CnfMoveSpeedMul; //移动速度
 
         public static void Log(String s)
         {
@@ -33,16 +34,13 @@ namespace SunHaven.WingMod.bie5
             // Plugin startup logic
             Logger.LogInfo($"Plugin WingMod is loaded!");
             harmony.PatchAll(typeof(MyPatcher));
-            CnfOreDropMul = Config.Bind("Global", "CnfOreDropMul", 1, "Rocks drop Multiplier");
+            CnfOreDropMul = Config.Bind("Global", "CnfOreDropMul", 1, "Rocks drop multiplier");
+            CnfMoveSpeedMul = Config.Bind("Global", "CnfMoveSpeedMul", 1f, "Movement speed multiplier");
             //手动patch
             // var randomArray_RandomItem = AccessTools.Method(typeof(RandomArray), nameof(RandomArray.RandomItem), new Type[] {typeof(int).MakeByRefType()});
             // harmony.Patch(randomArray_RandomItem, null, new HarmonyMethod(AccessTools.Method(typeof(MyPatcher), nameof(MyPatcher.RandomArray_Patch))));
 
-            UniverseLib.Universe.Init(1f, () => PluginUI.Init(), ((s, type) => Logger.LogInfo(s)), new()
-            {
-                Disable_EventSystem_Override = false,
-                Force_Unlock_Mouse = true,
-            });
+            UniverseLib.Universe.Init(() => MyUI.Init());
         }
 
 
@@ -54,10 +52,10 @@ namespace SunHaven.WingMod.bie5
 
         private void Update()
         {
-            if (PluginUI.uiBase != null)
+            if (MyUI.uiBase != null)
             {
                 if (InputManager.GetKeyDown(KeyCode.F2))
-                    PluginUI.Instance.ToggleUI();
+                    MyUI.Instance.Toggle();
             }
         }
 
@@ -70,6 +68,18 @@ namespace SunHaven.WingMod.bie5
 
         static class MyPatcher
         {
+            private static readonly FloatRef MoveSpeedMul = new FloatRef();
+
+            [HarmonyPrefix]
+            [HarmonyPatch(typeof(Player), "FixedUpdate")]
+            static void Player_FixedUpdate(Player __instance)
+            {
+                if (!__instance.IsOwner)
+                    return;
+                MoveSpeedMul.value = Instance.CnfMoveSpeedMul.Value;
+                __instance.moveSpeedMultipliers.Add(MoveSpeedMul);
+            }
+
             // [HarmonyPostfix]
             // [HarmonyPatch(typeof(RandomArray), nameof(RandomArray.RandomItem), new Type[] {typeof(int)})]
             public static void RandomArray_Patch(out int amount, ItemData __result)
