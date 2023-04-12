@@ -30,4 +30,7 @@
 * https://docs.bepinex.dev/articles/dev_guide/dev_tools.html
 插件版本
 * https://github.com/ManlyMarco/RuntimeUnityEditor v3.0
-* 
+
+
+### MonoMod
+* https://github.com/MonoMod/MonoMod/blob/master/README-ModInterop.md

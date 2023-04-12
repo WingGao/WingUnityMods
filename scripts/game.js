@@ -1,5 +1,12 @@
 ﻿const ModConfigs = [
     {
+        steamId: 2281410,
+        name: '江城创业记',
+        gameDir: 'JiangCity',
+        modProjectName: 'JiangCityMod2',
+        ummTargetDir: ""
+    },
+    {
         steamId: 1432860,
         name: 'Sun Haven',
         gameDir: 'Sun Haven',

@@ -4,12 +4,13 @@
     <PropertyGroup>
         <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
         <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-        <ProjectGuid>{CF9878BC-D9DD-47D2-ACFC-A8042FD3B337}</ProjectGuid>
+        <ProjectGuid>{86534C5C-5654-4B06-92BE-39D4DEEDCF00}</ProjectGuid>
+        <ProjectTypeGuids>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
         <OutputType>Library</OutputType>
         <AppDesignerFolder>Properties</AppDesignerFolder>
-        <RootNamespace>WingUtil.Harmony</RootNamespace>
-        <AssemblyName>WingUtil.Harmony</AssemblyName>
-        <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+        <RootNamespace>JiangCityModTest</RootNamespace>
+        <AssemblyName>JiangCityModTest</AssemblyName>
+        <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
         <FileAlignment>512</FileAlignment>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -32,15 +33,23 @@
         <WarningLevel>4</WarningLevel>
     </PropertyGroup>
     <ItemGroup>
-        <Compile Include="Extensions.Harm.cs" />
-        <Compile Include="Extensions.UtilsIL.cs" />
-        <Compile Include="FileLogF.cs" />
-        <Compile Include="ILContext.cs" />
-        <Compile Include="ILCursor.cs" />
-        <Compile Include="ILInstruction.cs" />
-        <Compile Include="ILLabel.cs" />
+        <Reference Include="System" />
+        <Reference Include="System.Core" />
+        <Reference Include="System.Data" />
+        <Reference Include="System.Xml" />
+        <Reference Include="nunit.framework, Version=3.5.0.0, Culture=neutral, PublicKeyToken=2638cd05610744eb">
+            <HintPath>..\packages\NUnit.3.5.0\lib\net45\nunit.framework.dll</HintPath>
+        </Reference>
+    </ItemGroup>
+    <ItemGroup>
+        <Compile Include="Tests.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
-        <Compile Include="WingAccessTools.cs" />
+    </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\JiangCityMod\JiangCityMod.csproj">
+        <Project>{b0338709-794c-4291-a1d7-5575eafe40c2}</Project>
+        <Name>JiangCityMod</Name>
+      </ProjectReference>
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
     <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -225,7 +225,7 @@ namespace WingMod
             static void GetAttributePatch(CharacterAttributes.Type type, ref AttributeFloat __result)
             {
                 if (settings.CharNoNeed && (type == CharacterAttributes.Type.Hunger || type == CharacterAttributes.Type.Thirst ||
-                                            type == CharacterAttributes.Type.Toilet))
+                                            type == CharacterAttributes.Type.Toilet || type == CharacterAttributes.Type.Boredom))
                     __result.SetValue(1, true);
             }
         }

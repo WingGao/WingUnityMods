@@ -355,6 +355,11 @@ namespace WingUtil.Harmony
         // // manual overloads for params + default args
         public ILCursor GotoNext(params Func<ILInstruction, bool>[] predicates) => GotoNext(MoveType.Before, predicates);
 
+        /// <summary>
+        /// 找到目标
+        /// </summary>
+        /// <param name="predicates"></param>
+        /// <returns>Next就是自己</returns>
         public bool TryGotoNext(params Func<ILInstruction, bool>[] predicates) => TryGotoNext(MoveType.Before, predicates);
         // public ILCursor GotoPrev(params Func<Instruction, bool>[] predicates) => GotoPrev(MoveType.Before, predicates);
         // public bool TryGotoPrev(params Func<Instruction, bool>[] predicates) => TryGotoPrev(MoveType.Before, predicates);

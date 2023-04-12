@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <Reference Include="iFActionGame">
+        <HintPath>..\JiangCityMod\_game\iFActionGame.dll</HintPath>
+      </Reference>
+      <Reference Include="OpenTK.Windowing.Desktop">
+        <HintPath>..\..\..\Program Files (x86)\Steam\steamapps\common\JiangCity\OpenTK.Windowing.Desktop.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+
+</Project>

@@ -54,8 +54,8 @@ function buildGameConfig(cnf) {
         full.targetDir = path.resolve(full.gameDir, path.dirname(cnf.modTarget))
     }
     full.modProjectDir = path.resolve(rootDir, cnf.modProjectName)
-    full.modProjectOutDir = path.resolve(full.modProjectDir, 'bin\\Debug')
-    // full.modProjectOutDir = getWingModOutputDir(full)
+    let output = path.resolve(full.modProjectDir, 'bin\\Debug')
+    full.modProjectOutDir = getWingModOutputDir(output)
     return full
 }
 
@@ -63,8 +63,8 @@ function buildGameConfig(cnf) {
  * 获取dll生产的目录
  * @param cnf
  */
-function getWingModOutputDir(cnf) {
-    let dll = globby.sync('**/WingMod.dll', {cwd: cnf.modProjectOutDir, absolute: true})
+function getWingModOutputDir(outdir) {
+    let dll = globby.sync('**/WingMod.dll', {cwd: outdir, absolute: true})
     return path.dirname(dll[0])
 }
 

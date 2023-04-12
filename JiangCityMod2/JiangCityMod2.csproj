@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.1</TargetFramework>
+        <AssemblyName>WingMod</AssemblyName>
+        <RootNamespace>WingMod</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <Reference Include="0Harmony">
+        <HintPath>..\..\..\Program Files (x86)\Steam\steamapps\common\JiangCity\0Harmony.dll</HintPath>
+      </Reference>
+      <Reference Include="iFActionGame">
+        <HintPath>..\..\..\Program Files (x86)\Steam\steamapps\common\JiangCity\iFActionGame.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Remove="_game\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Remove="_game\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="_game\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\WingUtil.Harmony\WingUtil.Harmony.csproj" />
+    </ItemGroup>
+
+</Project>
