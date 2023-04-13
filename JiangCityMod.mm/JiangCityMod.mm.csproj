@@ -6,10 +6,7 @@
 
     <ItemGroup>
       <Reference Include="iFActionGame">
-        <HintPath>..\JiangCityMod\_game\iFActionGame.dll</HintPath>
-      </Reference>
-      <Reference Include="OpenTK.Windowing.Desktop">
-        <HintPath>..\..\..\Program Files (x86)\Steam\steamapps\common\JiangCity\OpenTK.Windowing.Desktop.dll</HintPath>
+        <HintPath>_game\iFActionGame.dll</HintPath>
       </Reference>
     </ItemGroup>
 

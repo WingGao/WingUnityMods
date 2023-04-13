@@ -9,14 +9,6 @@ namespace WingMod
 {
     public static class MyPlugin
     {
-        public static void Hook2()
-        {
-            var h = Assembly.LoadFrom("0Harmony.dll");
-            var ht = h.GetType("Harmony");
-            var harmony = Activator.CreateInstance(ht);
-            ht.GetMethod("PatchAll").Invoke(harmony, null);
-        }
-
         public static void Hook()
         {
             FileLog.Reset();

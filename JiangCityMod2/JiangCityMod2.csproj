@@ -9,10 +9,10 @@
 
     <ItemGroup>
       <Reference Include="0Harmony">
-        <HintPath>..\..\..\Program Files (x86)\Steam\steamapps\common\JiangCity\0Harmony.dll</HintPath>
+        <HintPath>plib\0Harmony.dll</HintPath>
       </Reference>
       <Reference Include="iFActionGame">
-        <HintPath>..\..\..\Program Files (x86)\Steam\steamapps\common\JiangCity\iFActionGame.dll</HintPath>
+        <HintPath>..\JiangCityMod.mm\_game\iFActionGame.dll</HintPath>
       </Reference>
       <Reference Include="Microsoft.CodeAnalysis">
         <HintPath>..\JiangCityMod.mm\_game\Microsoft.CodeAnalysis.dll</HintPath>
@@ -24,14 +24,20 @@
 
     <ItemGroup>
       <Compile Remove="_game\**" />
+      <Compile Remove="plib\wing\**" />
+      <Compile Remove="plib\**" />
     </ItemGroup>
 
     <ItemGroup>
       <EmbeddedResource Remove="_game\**" />
+      <EmbeddedResource Remove="plib\wing\**" />
+      <EmbeddedResource Remove="plib\**" />
     </ItemGroup>
 
     <ItemGroup>
       <None Remove="_game\**" />
+      <None Remove="plib\wing\**" />
+      <None Remove="plib\**" />
     </ItemGroup>
 
     <ItemGroup>
