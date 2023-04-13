@@ -22,14 +22,14 @@ namespace WingUtil.Harmony
                 return fieldInfo.FieldType.FullDescription() + " " + fieldInfo.DeclaringType.FullDescription() + "::" +
                        fieldInfo.Name;
             if (type == typeof(Label))
-                return string.Format("Label{0}", (object)((Label)argument).GetHashCode());
+                return string.Format("Label{0}", (object) ((Label) argument).GetHashCode());
             if (type == typeof(Label[]))
                 return "Labels" + string.Join(",",
-                    ((IEnumerable<Label>)(Label[])argument)
-                    .Select<Label, string>((Func<Label, string>)(l => l.GetHashCode().ToString())).ToArray<string>());
+                    ((IEnumerable<Label>) (Label[]) argument)
+                    .Select<Label, string>((Func<Label, string>) (l => l.GetHashCode().ToString())).ToArray<string>());
             if (type == typeof(LocalBuilder))
-                return string.Format("{0} ({1})", (object)((LocalVariableInfo)argument).LocalIndex,
-                    (object)((LocalVariableInfo)argument).LocalType);
+                return string.Format("{0} ({1})", (object) ((LocalVariableInfo) argument).LocalIndex,
+                    (object) ((LocalVariableInfo) argument).LocalType);
             return type == typeof(string) ? argument.ToString().ToLiteral() : argument.ToString().Trim();
         }
 
@@ -86,14 +86,27 @@ namespace WingUtil.Harmony
             value = default;
             return false;
         }
-    /// <summary>
-    ///
-    /// ldfld        class TestGameMain.ClassB TestGameMain.ClassA::FieldClass1 ==> TestGameMain.ClassA::FieldClass1 
-    /// ldfld        int32 TestGameMain.ClassB::FieldInt1  ==> TestGameMain.ClassB::FieldInt1
-    /// </summary>
-    /// <param name="instr"></param>
-    /// <param name="name">DeclaringType::Name</param>
-    /// <returns></returns>
+
+        public static bool MatchOpByName(this CodeInstruction instr, OpCode op, string name)
+        {
+            if (instr.opcode == op)
+            {
+                FieldInfo opr = instr.operand as FieldInfo;
+                var fName = opr.DeclaringType + "::" + opr.Name;
+                return fName == name;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        ///
+        /// ldfld        class TestGameMain.ClassB TestGameMain.ClassA::FieldClass1 ==> TestGameMain.ClassA::FieldClass1 
+        /// ldfld        int32 TestGameMain.ClassB::FieldInt1  ==> TestGameMain.ClassB::FieldInt1
+        /// </summary>
+        /// <param name="instr"></param>
+        /// <param name="name">DeclaringType::Name</param>
+        /// <returns></returns>
         public static bool MatchLdfld(this CodeInstruction instr, string name)
         {
             if (instr.opcode == OpCodes.Ldfld)
@@ -105,23 +118,28 @@ namespace WingUtil.Harmony
 
             return false;
         }
-    /// <summary>
-    ///  stfld        int32 PlayerAnimControl::RefineHPCriticalCount ==>  PlayerAnimControl::RefineHPCriticalCount 
-    /// </summary>
-    /// <param name="instr"></param>
-    /// <param name="name"></param>
-    /// <returns></returns>
-    public static bool MatchStfld(this CodeInstruction instr, string name)
-    {
-        if (instr.opcode == OpCodes.Stfld)
+
+        public static bool MatchLdsfld(this CodeInstruction instr, string name)
         {
-            FieldInfo opr = instr.operand as FieldInfo;
-            var fName = opr.DeclaringType + "::" + opr.Name;
-            return fName == name;
+            return MatchOpByName(instr, OpCodes.Ldsfld, name);
         }
 
-        return false;
-    }
-    
+        /// <summary>
+        ///  stfld        int32 PlayerAnimControl::RefineHPCriticalCount ==>  PlayerAnimControl::RefineHPCriticalCount 
+        /// </summary>
+        /// <param name="instr"></param>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public static bool MatchStfld(this CodeInstruction instr, string name)
+        {
+            if (instr.opcode == OpCodes.Stfld)
+            {
+                FieldInfo opr = instr.operand as FieldInfo;
+                var fName = opr.DeclaringType + "::" + opr.Name;
+                return fName == name;
+            }
+
+            return false;
+        }
     }
 }

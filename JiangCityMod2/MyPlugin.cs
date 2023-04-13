@@ -24,7 +24,7 @@ namespace WingMod
             var harmony = new Harmony("WingMod");
             harmony.PatchAll();
             FileLog.Log($"hello {DateTime.Now.ToString()}");
-            
+
             // var originalMethods = Harmony.GetAllPatchedMethods();
             // foreach (var method in originalMethods)
             // {
@@ -47,13 +47,13 @@ namespace WingMod
             var tVer = AccessTools.Field(tRV, "ver");
             var gameVerStr = tVer.GetValue(null);
             FileLog.Log($"游戏版本 {gameVerStr}");
-            tVer.SetValue(null, gameVerStr+" wing_patched");
+            // tVer.SetValue(null, gameVerStr + " wing_patched");
         }
 
         [HarmonyPatch(typeof(Game))]
         public class GamePatch
         {
-            [HarmonyPatch( "OnLoad")]
+            [HarmonyPatch("OnLoad")]
             [HarmonyPrefix]
             static void Game_OnLoad_patch()
             {
@@ -62,12 +62,13 @@ namespace WingMod
                 // var tVer = AccessTools.Field(tRV, "ver");
                 // tVer.SetValue(null, "wing_patched");
             }
-            
+
             [HarmonyPatch("loadScript")]
             [HarmonyPostfix]
             static void Game_loadScript_patch()
             {
                 GetVersion();
+                AccessTools.Method("iFActionScript.WingSourceHarmPatcher:Patch").Invoke(null, null);
             }
         }
     }
