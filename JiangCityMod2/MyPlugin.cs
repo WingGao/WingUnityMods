@@ -4,13 +4,21 @@ using System.Linq;
 using System.Reflection;
 using HarmonyLib;
 using iFActionGame2;
+using System.Runtime.InteropServices;
+
 
 namespace WingMod
 {
+    
     public static class MyPlugin
     {
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        static extern bool AllocConsole();
+
         public static void Hook()
         {
+            AllocConsole();
             FileLog.Reset();
             Harmony.DEBUG = true;
             var harmony = new Harmony("WingMod");
@@ -23,6 +31,9 @@ namespace WingMod
             //     FileLog.Log($"Patched {method.Name} {method.FullDescription()}");
             // }
             // FindAss();
+            //重定向Console
+            // Console.SetError(FileLog.LogWriter);
+            // Console.SetOut(FileLog.LogWriter);
         }
 
         static void FindAss()

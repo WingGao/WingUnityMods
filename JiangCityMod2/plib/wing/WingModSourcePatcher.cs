@@ -1,18 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Drawing;
 using Newtonsoft.Json;
 using iFActionGame2;
-using iFActionGame2.js;
 using System.IO;
 using System.Linq;
 using System.Reflection.Emit;
-using System.Threading;
 using HarmonyLib;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using WingUtil.Harmony;
 
+// ！！必须使用该注释区分 using与正文！！
+// WingModScript
 namespace iFActionScript
 {
     public class WingModSettingJSon
@@ -22,6 +20,7 @@ namespace iFActionScript
         public bool GiveItemAnyMax = true; //赠送任何东西都是最喜欢
         public bool MakeItemOneTime = true; //一次敲击
         public bool TaskNoLimit = true; //任务无上限
+        public Dictionary<string, string> Extensions = new Dictionary<string, string>(); //其他扩展
     }
 
     public static class WingSourceHarmPatcher
@@ -34,9 +33,14 @@ namespace iFActionScript
             p.PatchAll();
             RV.ver += " (WingMod v0.0.1)";
             LoadSetting();
+            OnPatch();
         }
 
-        private static String SaveFile = "WingMod.Settings.json";
+        public static void OnPatch()
+        {
+        }
+
+        private static String SaveFile = "WingMod/WingMod.Settings.json";
 
         static void LoadSetting()
         {
@@ -291,15 +295,20 @@ namespace iFActionScript
             }
 
             if (moveSpeedBar.updateCtrl()) return true;
-            checkBoxes.First(box =>
+            if(checkBoxes.FirstOrDefault(box =>
             {
-                if (box == giveItemAnyMaxBox) WingSourceHarmPatcher.Settings.GiveItemAnyMax = box.select;
-                else if (box == canPenetrateBox) WingSourceHarmPatcher.Settings.CanPenetrate = box.select;
-                else if (box == makeItemOnceBox) WingSourceHarmPatcher.Settings.MakeItemOneTime = box.select;
-                else if (box == taskLimitBox) WingSourceHarmPatcher.Settings.TaskNoLimit = box.select;
-                else return false;
-                return true;
-            });
+                if (box.update())
+                {
+                    if (box == giveItemAnyMaxBox) WingSourceHarmPatcher.Settings.GiveItemAnyMax = box.select;
+                    else if (box == canPenetrateBox) WingSourceHarmPatcher.Settings.CanPenetrate = box.select;
+                    else if (box == makeItemOnceBox) WingSourceHarmPatcher.Settings.MakeItemOneTime = box.select;
+                    else if (box == taskLimitBox) WingSourceHarmPatcher.Settings.TaskNoLimit = box.select;
+                    else return false;
+                    return true;
+                }
+
+                return false;
+            }) != null) return true;
 
             return false;
         }

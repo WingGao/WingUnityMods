@@ -19,21 +19,54 @@ namespace WingMod
         static void Compile_Prefix(ref string text, string aName)
         {
             if (aName != "iFActionGameScript") return;
-            var mySource = File.ReadAllLines(IVal.BasePath + "WingModSourcePatcher.cs");
-            var skipUsing = 0;
-            for (var i = 0; i < mySource.Length; i++)
+            LoadScripts(ref text);
+            // var mySource = File.ReadAllLines(IVal.BasePath + "WingModSourcePatcher.cs");
+            // var skipUsing = 0;
+            // for (var i = 0; i < mySource.Length; i++)
+            // {
+            //     if (mySource[i].StartsWith("namespace"))
+            //     {
+            //         skipUsing = i;
+            //         break;
+            //     }
+            // }
+            //
+            // text = $"using HarmonyLib;using OpenTK.Windowing.GraphicsLibraryFramework;using WingUtil.Harmony;using System.Reflection.Emit;" +
+            //        $"\n{text}\n{String.Join("\n", mySource.Skip(skipUsing))}";
+            
+            // var patcher = new ScriptSourcePatcher(text);
+            // patcher.Patch();
+        }
+
+        static void LoadScripts(ref string text)
+        {
+            var usingMap = new Dictionary<String, int>();
+            var scripts = new List<String>();
+            //获取目录下的所有cs
+            foreach (var file in Directory.GetFiles(IVal.BasePath + "WingMod", "*.cs"))
             {
-                if (mySource[i].StartsWith("namespace"))
+                var scriptLines = File.ReadAllLines(file);
+                var skipUsing = 0;
+                for (var i = 0; i < scriptLines.Length; i++)
                 {
-                    skipUsing = i;
-                    break;
+                    if (scriptLines[i].StartsWith("using")) //优化using
+                    {
+                        var usingName = scriptLines[i].Split(";")[0].Split(" ").Last();
+                        usingMap.TryAdd(usingName, 1);
+                    }
+                    else if (scriptLines[i].StartsWith("// WingModScript"))
+                    {
+                        scripts.Add(scriptLines.Skip(i).Join(null, "\n"));
+                        break;
+                    }
                 }
             }
 
-            text = $"using HarmonyLib;using OpenTK.Windowing.GraphicsLibraryFramework;using WingUtil.Harmony;using System.Reflection.Emit;" +
-                   $"\n{text}\n{String.Join("\n", mySource.Skip(skipUsing))}";
-            // var patcher = new ScriptSourcePatcher(text);
-            // patcher.Patch();
+            var usingTxt = usingMap.Keys.Select(u => "using " + u + ";").Join(null,"");
+            var modTxt = scripts.Join(null, "\n");
+            FileLog.Log($"usingTxt => {usingTxt}");
+            FileLog.Log($"modTxt => \n{modTxt}");
+            text = $"{usingTxt}\n{text}\n{modTxt}";
         }
 
         [HarmonyPatch(nameof(ICompiler.Compile))]
