@@ -24,7 +24,7 @@ namespace JiangCityMod3
         public MainWindow()
         {
             InitializeComponent();
-            Helper.MakePluginFile();
+            // Helper.MakePluginFile();
         }
 
         private void ButtonUnpack_OnClick(object sender, RoutedEventArgs e)

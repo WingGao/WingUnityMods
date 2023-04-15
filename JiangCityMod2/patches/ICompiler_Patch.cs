@@ -1,20 +1,103 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Threading;
 using HarmonyLib;
 using iFActionGame2;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Text;
 using WingUtil.Harmony;
 
 namespace WingMod
 {
-    [HarmonyPatch(typeof(ICompiler))]
+    [HarmonyPatch]
+    public class CSharpPatch
+    {
+        private static string mainScript;
+        private static bool IsGameScriptEmit = false;
+
+        [HarmonyPatch(typeof(CSharpSyntaxTree))]
+        [HarmonyPatch(nameof(CSharpSyntaxTree.ParseText),
+            new Type[]
+            {
+                typeof(SourceText), typeof(CSharpParseOptions), typeof(string), typeof(ImmutableDictionary<string, ReportDiagnostic>),
+                typeof(bool), typeof(CancellationToken)
+            })]
+        [HarmonyPrefix]
+        static void CSharpSyntaxTree_ParseText(ref SourceText text)
+        {
+            if (String.IsNullOrEmpty(mainScript))
+            {
+                FileLog.Log($"CSharpSyntaxTree_ParseText Stack=> {Environment.StackTrace}");
+                var stack = new StackTrace().GetFrames().First(x => x.GetMethod().FullDescription().Contains("iFActionGame2"));
+                // foreach (var stackFrame in stack)
+                // {
+                //     FileLog.Log($"CSharpSyntaxTree_ParseText=> {stackFrame}");
+                // }
+                foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies()) FileLog.Log($"Assembly=> {assembly.FullName}");
+                mainScript = text.ToString();
+                // 注入启动函数
+                var startIdx = mainScript.IndexOf("public static void GameRun()");
+                var nextBlock = mainScript.IndexOf("{", startIdx);
+                mainScript = mainScript.Insert(nextBlock + 1, "WingSourceHarmPatcher.Patch();");
+                ICompiler_Patch.LoadScripts(ref mainScript);
+                // mainScript = $"using System; {mainScript}";
+                text = SourceText.From(mainScript);
+                // WingAccessTools.SetFieldValue(text, "_source", mainScript);
+                // FileLog.Log($"CSharpSyntaxTree_ParseText:\n{mainScript}");
+            }
+
+            // FileLog.Log(text.ToString());
+        }
+
+
+        // MetadataReference.CreateFromFile
+        [HarmonyPatch(typeof(MetadataReference))]
+        [HarmonyPatch(nameof(MetadataReference.CreateFromFile),
+            new[] {typeof(string), typeof(MetadataReferenceProperties), typeof(DocumentationProvider)})]
+        [HarmonyPrefix]
+        static void MetadataReference_CreateFromFile(ref string path)
+        {
+            // FileLog.Log($"MetadataReference_CreateFromFile path = {path}");
+            // 空文件重定向
+            if (String.IsNullOrEmpty(path)) path = IVal.BasePath + "OpenTK.Mathematics.dll";
+        }
+
+        [HarmonyPatch]
+        class EmitPatch
+        {
+            static MethodBase TargetMethod()
+            {
+                return AccessTools.FirstMethod(typeof(Compilation), m => m.Name == "Emit" && m.GetParameters().Length == 12);
+            }
+
+            static void Postfix(ref EmitResult __result)
+            {
+                if (IsGameScriptEmit) return;
+                IsGameScriptEmit = true;
+                if (!__result.Success)
+                {
+                    foreach (var resultDiagnostic in __result.Diagnostics)
+                    {
+                        if (resultDiagnostic.WarningLevel == (int) DiagnosticSeverity.Error) Console.WriteLine(resultDiagnostic);
+                    }
+                }
+            }
+        }
+    }
+
+    // [HarmonyPatch(typeof(ICompiler))]
     public class ICompiler_Patch
     {
-        [HarmonyPatch(nameof(ICompiler.Compile))]
+        // [HarmonyPatch(nameof(ICompiler.Compile))]
         [HarmonyPrefix]
         static void Compile_Prefix(ref string text, string aName)
         {
@@ -33,12 +116,12 @@ namespace WingMod
             //
             // text = $"using HarmonyLib;using OpenTK.Windowing.GraphicsLibraryFramework;using WingUtil.Harmony;using System.Reflection.Emit;" +
             //        $"\n{text}\n{String.Join("\n", mySource.Skip(skipUsing))}";
-            
+
             // var patcher = new ScriptSourcePatcher(text);
             // patcher.Patch();
         }
 
-        static void LoadScripts(ref string text)
+        public static void LoadScripts(ref string text)
         {
             var usingMap = new Dictionary<String, int>();
             var scripts = new List<String>();
@@ -62,14 +145,15 @@ namespace WingMod
                 }
             }
 
-            var usingTxt = usingMap.Keys.Select(u => "using " + u + ";").Join(null,"");
+            var usingTxt = usingMap.Keys.Select(u => "using " + u + ";").Join(null, "");
             var modTxt = scripts.Join(null, "\n");
             FileLog.Log($"usingTxt => {usingTxt}");
             FileLog.Log($"modTxt => \n{modTxt}");
+            // modTxt = "";
             text = $"{usingTxt}\n{text}\n{modTxt}";
         }
 
-        [HarmonyPatch(nameof(ICompiler.Compile))]
+        // [HarmonyPatch(nameof(ICompiler.Compile))]
         [HarmonyTranspiler]
         static IEnumerable<CodeInstruction> Compile_Patch(IEnumerable<CodeInstruction> instructions)
         {

@@ -15,11 +15,14 @@ namespace iFActionScript
 {
     public class WingModSettingJSon
     {
+        public int HotKey = IInput.CodeToWinKey(Keys.F4);
         public float MoveSpeed = 1; //移动速度
         public bool CanPenetrate = true; //穿墙
         public bool GiveItemAnyMax = true; //赠送任何东西都是最喜欢
         public bool MakeItemOneTime = true; //一次敲击
         public bool TaskNoLimit = true; //任务无上限
+        public bool GameTouhuEasy = true; //小游戏投壶最高分
+        public bool BuildNoCost = false; //建造不消耗
         public Dictionary<string, string> Extensions = new Dictionary<string, string>(); //其他扩展
     }
 
@@ -31,7 +34,7 @@ namespace iFActionScript
         {
             var p = new Harmony("WingMod.SourcePatcher");
             p.PatchAll();
-            RV.ver += " (WingMod v0.0.1)";
+            RV.ver += " (WingMod v0.0.2)";
             LoadSetting();
             OnPatch();
         }
@@ -77,12 +80,49 @@ namespace iFActionScript
             /// <param name="__instance"></param>
             [HarmonyPatch(typeof(WBuildMakeTable), "makeItem")]
             [HarmonyPrefix]
-            static void makeItemPatch(WBuildMakeTable __instance, bool ___canMake, ref int ___nowMKT, LItem ___nowSelect)
+            static void makeItemPatch(WBuildMakeTable __instance, bool ___canMake, ref int ___nowMKT, LItem ___nowSelect, ref int ___makeTimeMax)
             {
                 if (Settings.MakeItemOneTime && ___nowSelect != null && ___canMake)
                 {
                     ___nowMKT = (___nowSelect.tag as GDFormula).makeTimes;
+                    ___makeTimeMax = 20;
                 }
+            }
+
+            private static int touhuPreStep;
+
+            /// <summary>
+            /// 小游戏投壶最高分
+            /// </summary>
+            /// <param name="__instance"></param>
+            [HarmonyPatch(typeof(GLMapMinGameTouhu), nameof(GLMapMinGameTouhu.update))]
+            [HarmonyPrefix]
+            static void GLMapMinGameTouhu_update_patch(GLMapMinGameTouhu __instance, int ___step, ref double ___yS, ref double ___xS, ISprite ___nowArrow)
+            {
+                if (Settings.GameTouhuEasy && ___step == 2 && touhuPreStep != 2) //刚进入弹道阶段
+                {
+                    ___xS = ___nowArrow.x - 244;
+                    ___yS = ___nowArrow.y - 215;
+                }
+
+                touhuPreStep = ___step;
+            }
+
+            /// <summary>
+            /// 建造不消耗
+            /// </summary>
+            /// <param name="__instance"></param>
+            [HarmonyPatch(typeof(CBuildMsg), nameof(CBuildMsg.build))]
+            [HarmonyPrefix]
+            static bool CBuildMsg_build_patch(CBuildMsg __instance)
+            {
+                if (Settings.BuildNoCost)
+                {
+                    if (__instance.canBuild) __instance.reDraw();
+                    return false;
+                }
+
+                return true;
             }
         }
 
@@ -163,7 +203,7 @@ namespace iFActionScript
             [HarmonyPostfix]
             static void updateKey_Patch()
             {
-                if (IInput.isKeyDown(IInput.CodeToWinKey(Keys.F2)))
+                if (IInput.isKeyDown(Settings.HotKey))
                 {
                     RF.ShowWin(new WModSetting());
                     return;
@@ -181,7 +221,7 @@ namespace iFActionScript
             static void ctro_Patch(WMenuSys __instance)
             {
                 modButton = new IButton(RF.LoadCache("System/Menu/button_system_0.png"), RF.LoadCache("System/Menu/button_system_1.png"), " ");
-                AccessTools.Method(typeof(WMenuSys), "drawButtonText").Invoke(__instance, new object[] {modButton.getText(), "WingMod"});
+                AccessTools.Method(typeof(WMenuSys), "drawButtonText").Invoke(__instance, new object[] {modButton.getText(), "WingMod(F4)"});
                 modButton.z = 2601;
             }
 
@@ -213,6 +253,60 @@ namespace iFActionScript
                 modButton.y = ___setButton.y;
             }
         }
+
+
+        [HarmonyPatch(typeof(WMenuSocial))]
+        public class WMenuSocialPatch
+        {
+            private static List<IButton> teleportBtns = new List<IButton>();
+            private static IButton teleportBtn;
+
+            /// <summary>
+            /// 添加传送按钮
+            /// </summary>
+            [HarmonyPatch(MethodType.Constructor)]
+            [HarmonyPostfix]
+            static void ctor_patch(WMenuSocial __instance, IViewport ___viewR)
+            {
+                teleportBtn = new WModSetting.TextSmallBtn(null, "传送");
+                teleportBtn.z = 2503;
+            }
+
+            [HarmonyPatch(nameof(WMenuSocial.update))]
+            [HarmonyPostfix]
+            static void update_patch(ref bool __result, NPCBase ___nowNpc)
+            {
+                if (!__result)
+                {
+                    if (teleportBtn.update())
+                    {
+                        int x = (int) ___nowNpc.nowX;
+                        int y = (int) ___nowNpc.nowY;
+                        FileLog.Log($"传送到{___nowNpc.name} nowMapId={___nowNpc.nowMapId} x={x} y={y}");
+                        LScript.toNMap(___nowNpc.nowMapId.ToString(), x.ToString(), y.ToString(), "0");
+                    }
+                    else return;
+
+                    __result = true;
+                }
+            }
+
+            [HarmonyPatch(nameof(WMenuSocial.dispose))]
+            [HarmonyPostfix]
+            static void dispose_patch()
+            {
+                teleportBtn.disposeMin();
+            }
+
+            [HarmonyPatch(nameof(WMenuSocial.sizeChange))]
+            [HarmonyPostfix]
+            static void sizeChange_patch(ISprite ___drawRight)
+            {
+                teleportBtn.x = ___drawRight.x;
+                teleportBtn.y = ___drawRight.y + 10;
+                teleportBtn.zoomX = teleportBtn.zoomY = ___drawRight.zoomX;
+            }
+        }
     }
 
     /// <summary>
@@ -226,14 +320,19 @@ namespace iFActionScript
         private WingCheckBox canPenetrateBox;
         private WingCheckBox makeItemOnceBox;
         private WingCheckBox taskLimitBox;
+        private WingCheckBox gameTouhuBox;
+        private WingCheckBox buildNoCostBox;
+        private IButton hourDecBtn;
+        private IButton hourIncBtn;
         private ISprite textSprit;
         private ISprite back;
         CloseBtn closeBtn = new CloseBtn();
         private List<WingCheckBox> checkBoxes = new List<WingCheckBox>();
+        private List<IButton> buttons = new List<IButton>();
 
         private int _z = 3000;
         private int _textX = 15;
-        private int _textLineHeight = 20;
+        private int _textLineHeight = 30;
         private bool preTimeLock = RV.NowTime.timeLock;
 
         public WModSetting()
@@ -253,8 +352,16 @@ namespace iFActionScript
             canPenetrateBox = new WingCheckBox(view, WingSourceHarmPatcher.Settings.CanPenetrate);
             makeItemOnceBox = new WingCheckBox(view, WingSourceHarmPatcher.Settings.MakeItemOneTime);
             taskLimitBox = new WingCheckBox(view, WingSourceHarmPatcher.Settings.TaskNoLimit);
+            buildNoCostBox = new WingCheckBox(view, WingSourceHarmPatcher.Settings.BuildNoCost);
+            gameTouhuBox = new WingCheckBox(view, WingSourceHarmPatcher.Settings.GameTouhuEasy);
+
+            hourDecBtn = new IButton(RF.LoadCache("System/Setting/minus_0.png"), RF.LoadCache("System/Setting/minus_1.png"), "", view);
+            hourIncBtn = new IButton(RF.LoadCache("System/Setting/add_0.png"), RF.LoadCache("System/Setting/add_1.png"), "", view);
+            buttons.Add(hourDecBtn);
+            buttons.Add(hourIncBtn);
+            buttons.ForEach(x => x.z = _z);
             textSprit = new ISprite(560, 583, IColor.Transparent(), view);
-            back = new ISprite(RF.LoadBitmap("System/Setting/settingBack.png"));
+            back = new ISprite(RF.LoadCache("System/Setting/settingBack.png"));
             back.z = _z - 1;
             drawUIText();
         }
@@ -263,6 +370,11 @@ namespace iFActionScript
         {
             textSprit.clearBitmap();
             var line = 0;
+            drawText("时间调整(1小时)：", line * _textLineHeight);
+            hourDecBtn.x = 160;
+            hourIncBtn.x = hourDecBtn.x + 40;
+            hourDecBtn.y = hourIncBtn.y = line * _textLineHeight;
+            line++;
             moveSpeedBar.x = 95 + 10;
             moveSpeedBar.y = line * _textLineHeight + 5;
             drawText(WingSourceHarmPatcher.Settings.MoveSpeed.ToString("0.0"), line * _textLineHeight, 330);
@@ -271,6 +383,8 @@ namespace iFActionScript
             drawCheckBox("赠送任何东西都是最喜欢(需重启)：", giveItemAnyMaxBox, line++);
             drawCheckBox("制作敲击1次：", makeItemOnceBox, line++);
             drawCheckBox("任务无上限(需重启)：", taskLimitBox, line++);
+            drawCheckBox("建造不消耗：", buildNoCostBox, line++);
+            drawCheckBox("小游戏投壶最高分：", gameTouhuBox, line++);
         }
 
         void drawCheckBox(string text, WingCheckBox box, int line)
@@ -288,28 +402,42 @@ namespace iFActionScript
         public override bool update()
         {
             if (base.update()) return true;
-            if (IInput.isKeyDown(IInput.CodeToWinKey(Keys.Escape)) || IInput.isKeyDown(IInput.CodeToWinKey(Keys.F2)) || closeBtn.update())
+            if (IInput.isKeyDown(IInput.CodeToWinKey(Keys.Escape)) || IInput.isKeyDown(WingSourceHarmPatcher.Settings.HotKey) || closeBtn.update())
             {
                 dispose();
                 return true;
             }
 
             if (moveSpeedBar.updateCtrl()) return true;
-            if(checkBoxes.FirstOrDefault(box =>
-            {
-                if (box.update())
+            if (checkBoxes.FirstOrDefault(box =>
                 {
-                    if (box == giveItemAnyMaxBox) WingSourceHarmPatcher.Settings.GiveItemAnyMax = box.select;
-                    else if (box == canPenetrateBox) WingSourceHarmPatcher.Settings.CanPenetrate = box.select;
-                    else if (box == makeItemOnceBox) WingSourceHarmPatcher.Settings.MakeItemOneTime = box.select;
-                    else if (box == taskLimitBox) WingSourceHarmPatcher.Settings.TaskNoLimit = box.select;
-                    else return false;
-                    return true;
-                }
+                    if (box.update())
+                    {
+                        if (box == giveItemAnyMaxBox) WingSourceHarmPatcher.Settings.GiveItemAnyMax = box.select;
+                        else if (box == canPenetrateBox) WingSourceHarmPatcher.Settings.CanPenetrate = box.select;
+                        else if (box == makeItemOnceBox) WingSourceHarmPatcher.Settings.MakeItemOneTime = box.select;
+                        else if (box == taskLimitBox) WingSourceHarmPatcher.Settings.TaskNoLimit = box.select;
+                        else if (box == buildNoCostBox) WingSourceHarmPatcher.Settings.BuildNoCost = box.select;
+                        else if (box == gameTouhuBox) WingSourceHarmPatcher.Settings.GameTouhuEasy = box.select;
+                        else return false;
+                        return true;
+                    }
 
-                return false;
-            }) != null) return true;
+                    return false;
+                }) != null) return true;
+            if (buttons.FirstOrDefault(btn =>
+                {
+                    if (btn.update())
+                    {
+                        if (btn == hourIncBtn) RV.NowTime.addHour();
+                        else if (btn == hourDecBtn) RV.NowTime.hour--;
+                        else return false;
 
+                        return true;
+                    }
+
+                    return false;
+                }) != null) return true;
             return false;
         }
 
@@ -322,6 +450,7 @@ namespace iFActionScript
             closeBtn.disposeMin();
             moveSpeedBar.disposeMin();
             checkBoxes.ForEach(x => x.disposeMin());
+            buttons.ForEach(x => x.disposeMin());
             RV.NowTime.timeLock = preTimeLock; //时间状态回复
             WingSourceHarmPatcher.SaveSetting();
         }
@@ -343,6 +472,16 @@ namespace iFActionScript
         {
             public CloseBtn() : base(RF.LoadCache("System/buttonClose_0.png"), RF.LoadCache("System/buttonClose_1.png"))
             {
+            }
+        }
+
+        public class TextSmallBtn : IButton
+        {
+            public TextSmallBtn(IViewport viewport, string text) : base(RF.LoadBitmap("System/Bag/buttonMin1_0.png"),
+                RF.LoadBitmap("System/Bag/buttonMin1_1.png"), " ", viewport)
+            {
+                var w = RF.GetFW(text, 12);
+                drawTitleQ(text, RV.colT1, 12);
             }
         }
 

@@ -14,9 +14,16 @@ namespace WingUtil.Harmony
         {
             AccessTools.Field(obj.GetType(), fieldName).SetValue(obj, val);
         }
+
         public static void SetPropertyValue(object obj, string fieldName, object val)
         {
             AccessTools.Property(obj.GetType(), fieldName).SetValue(obj, val);
+        }
+
+        public static T InvokeMethod<T>(object obj, string methodName, object[] parameters) where T : class
+        {
+            var method = AccessTools.Method(obj.GetType(), methodName);
+            return method.Invoke(obj, parameters) as T;
         }
     }
 }

@@ -5,13 +5,15 @@ using System.Reflection;
 using HarmonyLib;
 using iFActionGame2;
 using System.Runtime.InteropServices;
+using WingUtil.Harmony;
 
 
 namespace WingMod
 {
-    
     public static class MyPlugin
     {
+        private static Harmony MyHarmony;
+
         [DllImport("kernel32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         static extern bool AllocConsole();
@@ -21,10 +23,9 @@ namespace WingMod
             AllocConsole();
             FileLog.Reset();
             Harmony.DEBUG = true;
-            var harmony = new Harmony("WingMod");
-            harmony.PatchAll();
-            FileLog.Log($"hello {DateTime.Now.ToString()}");
-
+            MyHarmony = new Harmony("WingMod");
+            MyHarmony.PatchAll();
+            FileLogF.Log($"Hook");
             // var originalMethods = Harmony.GetAllPatchedMethods();
             // foreach (var method in originalMethods)
             // {
@@ -66,9 +67,9 @@ namespace WingMod
                 // tVer.SetValue(null, "wing_patched");
             }
 
-            [HarmonyPatch("loadScript")]
-            [HarmonyPostfix]
-            static void Game_loadScript_patch()
+            // [HarmonyPatch("loadScript")]
+            // [HarmonyPostfix]
+            public static void Game_loadScript_patch()
             {
                 GetVersion();
                 AccessTools.Method("iFActionScript.WingSourceHarmPatcher:Patch").Invoke(null, null);

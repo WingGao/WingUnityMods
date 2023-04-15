@@ -20,6 +20,9 @@
       <Reference Include="Microsoft.CodeAnalysis.CSharp">
         <HintPath>..\JiangCityMod.mm\_game\Microsoft.CodeAnalysis.CSharp.dll</HintPath>
       </Reference>
+      <Reference Include="System.Collections.Immutable">
+        <HintPath>E:\Program Files (x86)\Steam\steamapps\common\JiangCity\System.Collections.Immutable.dll</HintPath>
+      </Reference>
     </ItemGroup>
 
     <ItemGroup>
