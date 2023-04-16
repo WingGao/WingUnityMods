@@ -23,6 +23,8 @@ namespace iFActionScript
         public bool TaskNoLimit = true; //任务无上限
         public bool GameTouhuEasy = true; //小游戏投壶最高分
         public bool BuildNoCost = false; //建造不消耗
+        public bool QuickCollect = true; //快速搜集
+        public bool QuickTool = true; //快速使用工具
         public Dictionary<string, string> Extensions = new Dictionary<string, string>(); //其他扩展
     }
 
@@ -89,6 +91,19 @@ namespace iFActionScript
                 }
             }
 
+            /// <summary>
+            /// 快速搜集
+            /// </summary>
+            [HarmonyPatch(typeof(WCollect), "init")]
+            [HarmonyPrefix]
+            static void WCollectInitPatch(WCollect __instance, ref int ___max)
+            {
+                if (Settings.QuickCollect)
+                {
+                    ___max = 3;
+                }
+            }
+
             private static int touhuPreStep;
 
             /// <summary>
@@ -146,6 +161,16 @@ namespace iFActionScript
                 }
 
                 return cursor.Context.AsEnumerable();
+            }
+
+            /// <summary>
+            /// 快速工具
+            /// </summary>
+            [HarmonyPatch(nameof(GMain.toolTimes), MethodType.Getter)]
+            [HarmonyPostfix]
+            static void toolTimesPatch(ref double __result)
+            {
+                if (Settings.QuickTool) __result = 30;
             }
         }
 
@@ -283,7 +308,7 @@ namespace iFActionScript
                         int x = (int) ___nowNpc.nowX;
                         int y = (int) ___nowNpc.nowY;
                         FileLog.Log($"传送到{___nowNpc.name} nowMapId={___nowNpc.nowMapId} x={x} y={y}");
-                        LScript.toNMap(___nowNpc.nowMapId.ToString(), x.ToString(), y.ToString(), "0");
+                        LScript.toNMap(___nowNpc.nowMapId.ToString(), (x + 20).ToString(), y.ToString(), "0");
                     }
                     else return;
 
@@ -322,6 +347,8 @@ namespace iFActionScript
         private WingCheckBox taskLimitBox;
         private WingCheckBox gameTouhuBox;
         private WingCheckBox buildNoCostBox;
+        private WingCheckBox quickCollectBox;
+        private WingCheckBox quickToolBox;
         private IButton hourDecBtn;
         private IButton hourIncBtn;
         private ISprite textSprit;
@@ -354,6 +381,8 @@ namespace iFActionScript
             taskLimitBox = new WingCheckBox(view, WingSourceHarmPatcher.Settings.TaskNoLimit);
             buildNoCostBox = new WingCheckBox(view, WingSourceHarmPatcher.Settings.BuildNoCost);
             gameTouhuBox = new WingCheckBox(view, WingSourceHarmPatcher.Settings.GameTouhuEasy);
+            quickCollectBox = new WingCheckBox(view, WingSourceHarmPatcher.Settings.QuickCollect);
+            quickToolBox = new WingCheckBox(view, WingSourceHarmPatcher.Settings.QuickTool);
 
             hourDecBtn = new IButton(RF.LoadCache("System/Setting/minus_0.png"), RF.LoadCache("System/Setting/minus_1.png"), "", view);
             hourIncBtn = new IButton(RF.LoadCache("System/Setting/add_0.png"), RF.LoadCache("System/Setting/add_1.png"), "", view);
@@ -384,6 +413,8 @@ namespace iFActionScript
             drawCheckBox("制作敲击1次：", makeItemOnceBox, line++);
             drawCheckBox("任务无上限(需重启)：", taskLimitBox, line++);
             drawCheckBox("建造不消耗：", buildNoCostBox, line++);
+            drawCheckBox("快速搜集：", quickCollectBox, line++);
+            drawCheckBox("快速砍树/破石：", quickToolBox, line++);
             drawCheckBox("小游戏投壶最高分：", gameTouhuBox, line++);
         }
 
@@ -419,6 +450,8 @@ namespace iFActionScript
                         else if (box == taskLimitBox) WingSourceHarmPatcher.Settings.TaskNoLimit = box.select;
                         else if (box == buildNoCostBox) WingSourceHarmPatcher.Settings.BuildNoCost = box.select;
                         else if (box == gameTouhuBox) WingSourceHarmPatcher.Settings.GameTouhuEasy = box.select;
+                        else if (box == quickCollectBox) WingSourceHarmPatcher.Settings.QuickCollect = box.select;
+                        else if (box == quickToolBox) WingSourceHarmPatcher.Settings.QuickTool = box.select;
                         else return false;
                         return true;
                     }
