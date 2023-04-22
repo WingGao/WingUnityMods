@@ -44,6 +44,7 @@ namespace WingMod
                 // }
                 foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies()) FileLog.Log($"Assembly=> {assembly.FullName}");
                 mainScript = text.ToString();
+                File.WriteAllText(IVal.BasePath + "src.cs", mainScript);
                 // 注入启动函数
                 var startIdx = mainScript.IndexOf("public static void GameRun()");
                 var nextBlock = mainScript.IndexOf("{", startIdx);

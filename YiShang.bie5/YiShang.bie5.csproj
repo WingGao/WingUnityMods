@@ -41,6 +41,9 @@
         <Reference Include="BepInEx">
           <HintPath>..\libs\bie5_x64\BepInEx\core\BepInEx.dll</HintPath>
         </Reference>
+        <Reference Include="Newtonsoft.Json">
+          <HintPath>_game\EastTradeTycoon_Data\Managed\Newtonsoft.Json.dll</HintPath>
+        </Reference>
         <Reference Include="System" />
         <Reference Include="System.Core" />
         <Reference Include="System.Data" />
@@ -53,6 +56,7 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
+        <Compile Include="Data.cs" />
         <Compile Include="MyPlugin.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
     </ItemGroup>
