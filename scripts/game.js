@@ -7,6 +7,13 @@
         ummTargetDir: ""
     },
     {
+        steamId: 2101080,
+        name: '中华一商',
+        gameDir: 'EastTradeTycoon',
+        modProjectName: 'YiShang.bie5',
+        bie: 5
+    },
+    {
         steamId: 1432860,
         name: 'Sun Haven',
         gameDir: 'Sun Haven',

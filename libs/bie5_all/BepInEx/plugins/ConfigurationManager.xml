@@ -86,8 +86,22 @@
         </member>
         <member name="P:ConfigurationManager.SettingEntryBase.CustomDrawer">
             <summary>
-            Custom setting draw action
+            Custom setting draw action.
+            Use either CustomDrawer or CustomHotkeyDrawer, using both at the same time leads to undefined behaviour.
             </summary>
+        </member>
+        <member name="P:ConfigurationManager.SettingEntryBase.CustomHotkeyDrawer">
+            <summary>
+            Custom setting draw action that allows polling keyboard input with the Input class.
+            Use either CustomDrawer or CustomHotkeyDrawer, using both at the same time leads to undefined behaviour.
+            </summary>
+        </member>
+        <member name="T:ConfigurationManager.SettingEntryBase.CustomHotkeyDrawerFunc">
+            <summary>
+            Custom setting draw action that allows polling keyboard input with the Input class.
+            </summary>
+            <param name="setting">Setting currently being set, is available</param>
+            <param name="isCurrentlyAcceptingInput">Set this ref parameter to true when you want the current setting drawer to receive Input events. Remember to set it to false after you are done!</param>
         </member>
         <member name="P:ConfigurationManager.SettingEntryBase.Browsable">
             <summary>
