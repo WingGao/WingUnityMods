@@ -23,8 +23,8 @@ namespace YiShang.WingMod.bie5
         public const string VERSION = "0.0.2";
         public static Harmony harmony = new Harmony("WingMod");
         public static MyPlugin Instance;
-        private ConfigEntry<int> CnfOreDropMul; //矿石掉落倍率
-        private ConfigEntry<float> CnfMoveSpeedMul; //移动速度
+        private ConfigEntry<int> CnfPerCarLoad; //驴车倍率
+        private ConfigEntry<float> CnfRenwuMul; //任务倍率
         private static Dictionary<string, string> CityNameCnMap = new Dictionary<string, string>(); //城市 中文名->key
 
         public static void Log(String s)
@@ -39,8 +39,9 @@ namespace YiShang.WingMod.bie5
             // Plugin startup logic
             Logger.LogInfo($"Plugin WingMod is loaded!");
             harmony.PatchAll();
-            CnfOreDropMul = Config.Bind("Global", "CnfOreDropMul", 1, "Rocks drop multiplier");
-            CnfMoveSpeedMul = Config.Bind("Global", "CnfMoveSpeedMul", 1f, "Movement speed multiplier");
+            CnfPerCarLoad = Config.Bind("Global", "CnfPerCarLoad", 4, "每辆驴车装在数");
+            CnfPerCarLoad.SettingChanged += (o, e) => { staticData.perCarLoad = CnfPerCarLoad.Value; };
+            CnfRenwuMul = Config.Bind("Global", "CnfRenwuMul", 2f, "任务商誉倍数");
             //手动patch
             // var randomArray_RandomItem = AccessTools.Method(typeof(RandomArray), nameof(RandomArray.RandomItem), new Type[] {typeof(int).MakeByRefType()});
             // harmony.Patch(randomArray_RandomItem, null, new HarmonyMethod(AccessTools.Method(typeof(MyPatcher), nameof(MyPatcher.RandomArray_Patch))));
@@ -108,10 +109,17 @@ namespace YiShang.WingMod.bie5
                     cursor.Index += 1;
                     cursor.Next.Instruction.opcode = OpCodes.Ldc_I4_S;
                     cursor.Next.Instruction.operand = 9999;
+                    cursor.Emit(OpCodes.Call, AccessTools.Method(typeof(MyPatcher), "renwuMul"));
                 }
 
                 cursor.LogTo(Log, "getButtonFunc_Patch");
                 return cursor.Context.AsEnumerable();
+            }
+
+            static void renwuMul()
+            {
+                var award = getRenwuWindowClass.selectRewnu["award"] as Dictionary<string, int>;
+                if (award.ContainsKey("fame")) award["fame"] = (int) (award["fame"] * MyPlugin.Instance.CnfRenwuMul.Value);
             }
 
             /// <summary>
@@ -159,6 +167,14 @@ namespace YiShang.WingMod.bie5
                 var rw = ConvertTo<YRenwu>(renwu);
                 __instance.cityLabel2.setText(__instance.cityLabel2.getText() + " " + CalcNeedDay(rw.targetLocation));
             }
+
+            // [HarmonyPatch(typeof(cityRenwuIndexWindowClass), "clickFinishRenwuButton")]
+            // [HarmonyPostfix]
+            // static void clickFinishRenwuButton(cityRenwuIndexWindowClass __instance)
+            // {
+            //     var rw = ConvertTo<YRenwu>(renwu);
+            //     __instance.cityLabel2.setText(__instance.cityLabel2.getText() + " " + CalcNeedDay(rw.targetLocation));
+            // }
         }
 
         /// <summary>

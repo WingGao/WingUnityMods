@@ -36,6 +36,7 @@ namespace YiShang.WingMod.bie5
         public string targetLocation; //城市key
         public List<string> goodList;
         public List<int> needList;
+        public Dictionary<string, int> award;
     }
 
     class DynamicDictionaryWrapper : DynamicObject
