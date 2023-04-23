@@ -1,15 +1,16 @@
 ﻿using System.Collections.Generic;
 using System.Dynamic;
+using Newtonsoft.Json;
 
 namespace YiShang.WingMod.bie5
 {
-
     //城市基础数据
     public class YCityStatic
     {
         public int rank;
         public string belong;
     }
+
     //城市当前数据
     public class YCity
     {
@@ -50,6 +51,15 @@ namespace YiShang.WingMod.bie5
         {
             result = null;
             return (_source.TryGetValue(binder.Name, out result));
+        }
+    }
+
+    public static class Ext
+    {
+        public static T ConvertTo<T>(this Dictionary<string, object> dic)
+        {
+            var j = JsonConvert.SerializeObject(dic);
+            return JsonConvert.DeserializeObject<T>(j);
         }
     }
 }

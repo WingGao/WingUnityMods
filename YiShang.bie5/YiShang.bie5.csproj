@@ -54,6 +54,9 @@
         <Reference Include="UnityEngine.CoreModule">
           <HintPath>_game\EastTradeTycoon_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
         </Reference>
+        <Reference Include="UnityEngine.UI">
+          <HintPath>_game\EastTradeTycoon_Data\Managed\UnityEngine.UI.dll</HintPath>
+        </Reference>
     </ItemGroup>
     <ItemGroup>
         <Compile Include="Data.cs" />

@@ -9,6 +9,7 @@ using HarmonyLib;
 using HarmonyLib.Tools;
 using Newtonsoft.Json;
 using UnityEngine;
+using UnityEngine.UI;
 using WingUtil.Harmony;
 using Object = UnityEngine.Object;
 
@@ -76,6 +77,17 @@ namespace YiShang.WingMod.bie5
             // }
         }
 
+        /// <summary>
+        /// 计算需要去的时间
+        /// </summary>
+        /// <param name="toCityName"></param>
+        /// <returns></returns>
+        static int CalcNeedDay(string toCityName)
+        {
+            Vector3 position = GameObject.Find("bigMap/cityFatherNode/" + toCityName).transform.position;
+            return whereBuyWinClass.calNeedDay(GameObject.Find("bigMap/player").transform.position, position);
+        }
+
         [HarmonyPatch]
         static class MyPatcher
         {
@@ -110,8 +122,42 @@ namespace YiShang.WingMod.bie5
             static void clickPauseButton_Patch(BargainWindowClass __instance, float ___width3)
             {
                 var p = __instance.buoy.transform.localPosition; // = new Vector3((float) (___width3 / 2.0 - 1), __instance, 0);
-                p.x = (float) (___width3 / 2.0 - 1);
+                p.x = (float) (___width3 / 2.0 - 10);
                 __instance.buoy.transform.localPosition = p;
+            }
+
+            /// <summary>
+            /// 事件显示按钮效果
+            /// </summary>
+            [HarmonyPatch(typeof(chooseEventWindowClass), "OnEnable")]
+            [HarmonyPrefix]
+            static void chooseEventWindowClass_Patch()
+            {
+                if (!GameManager.globalGameData.selectedRandomCityEvent.Contains(string.Format("{0}A", cityRandomEventClass.eventCode)))
+                    GameManager.globalGameData.selectedRandomCityEvent.Add(string.Format("{0}A", cityRandomEventClass.eventCode));
+                if (!GameManager.globalGameData.selectedRandomCityEvent.Contains(string.Format("{0}B", cityRandomEventClass.eventCode)))
+                    GameManager.globalGameData.selectedRandomCityEvent.Add(string.Format("{0}B", cityRandomEventClass.eventCode));
+            }
+
+            /// <summary>
+            /// 事件都是正面属性
+            /// </summary>
+            [HarmonyPatch(typeof(RandomEventClass), "childAblityAdd")]
+            [HarmonyPrefix]
+            static void RandomEventClass_Patch(ref int changeValue)
+            {
+                if (changeValue < 0) changeValue *= -1;
+            }
+
+            /// <summary>
+            /// 任务详情-显示距离
+            /// </summary>
+            [HarmonyPatch(typeof(renwuWindowClass), "openRenwuRightWindow")]
+            [HarmonyPostfix]
+            static void openRenwuRightWindow(renwuWindowClass __instance, Dictionary<string, object> renwu)
+            {
+                var rw = ConvertTo<YRenwu>(renwu);
+                __instance.cityLabel2.setText(__instance.cityLabel2.getText() + " " + CalcNeedDay(rw.targetLocation));
             }
         }
 
@@ -149,6 +195,11 @@ namespace YiShang.WingMod.bie5
             static void Patch(GameObject obj4, string goodKey)
             {
                 Log($"goodKey={goodKey}");
+                if (obj4.GetComponent<Text>().color == Color.gray) //直接显示未解锁商品
+                {
+                    obj4.setTextTrans(goodKey);
+                }
+
                 if (needGoods.Contains(goodKey)) obj4.setTextColor(NeedColor); //任务需要
                 // return x + "1";
             }
