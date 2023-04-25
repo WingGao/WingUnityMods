@@ -125,7 +125,9 @@ RF.log('WingMod End');
 
             public class Dep
             {
+                [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
                 public Dictionary<string, string>? dependencies;
+                [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
                 public Dictionary<string, Dictionary<string, string>> runtime;
             }
 
