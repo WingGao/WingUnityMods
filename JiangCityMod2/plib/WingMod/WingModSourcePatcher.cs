@@ -66,6 +66,25 @@ namespace iFActionScript
         public class SourcePatches
         {
             /// <summary>
+            /// 显示Log
+            /// </summary>
+            [HarmonyPatch(typeof(RF), nameof(RF.Log))]
+            [HarmonyPatch(new[] {typeof(string)})]
+            [HarmonyPostfix]
+            static void RF_Log(string str)
+            {
+                Console.WriteLine(str);
+            }
+
+            [HarmonyPatch(typeof(RF), nameof(RF.Log))]
+            [HarmonyPatch(new[] {typeof(string), typeof(object[])})]
+            [HarmonyPostfix]
+            static void RF_Log2(string format, object[] objs)
+            {
+                Console.WriteLine(String.Format(format, objs));
+            }
+
+            /// <summary>
             /// 修复CBar的bug
             /// </summary>
             [HarmonyPatch(typeof(CBar), MethodType.Setter)]
@@ -171,6 +190,17 @@ namespace iFActionScript
             static void toolTimesPatch(ref double __result)
             {
                 if (Settings.QuickTool) __result = 30;
+            }
+
+            /// <summary>
+            /// 物品减少
+            /// </summary>
+            [HarmonyPatch(nameof(GMain.subItem))]
+            [HarmonyPrefix]
+            static bool subItemPatch(int id)
+            {
+                if (id == 980) return false; //天机石不消耗
+                return true;
             }
         }
 
@@ -332,6 +362,29 @@ namespace iFActionScript
                 teleportBtn.zoomX = teleportBtn.zoomY = ___drawRight.zoomX;
             }
         }
+
+        [HarmonyPatch(typeof(WOreListNew))]
+        public class WOreListPatch
+        {
+            /// <summary>
+            /// 任务无上限
+            /// </summary>
+            [HarmonyPatch("makeButton")]
+            [HarmonyTranspiler]
+            static IEnumerable<CodeInstruction> makeButtonPatch(IEnumerable<CodeInstruction> instructions)
+            {
+                // return instructions;
+                ILCursor cursor = new ILCursor(instructions);
+                // org: b2.enable = GLNode.isCheck(22);
+                if (cursor.TryGotoNext(it => it.Instruction.MatchCallByName("iFActionScript.GLNode::isCheck")))
+                {
+                    cursor.Index -= 2;
+                    cursor.RemoveRange(4);
+                }
+
+                return cursor.Context.AsEnumerable();
+            }
+        }
     }
 
     /// <summary>
@@ -349,6 +402,7 @@ namespace iFActionScript
         private WingCheckBox buildNoCostBox;
         private WingCheckBox quickCollectBox;
         private WingCheckBox quickToolBox;
+        private IButton backHomeBtn;
         private IButton hourDecBtn;
         private IButton hourIncBtn;
         private ISprite textSprit;
@@ -386,6 +440,8 @@ namespace iFActionScript
 
             hourDecBtn = new IButton(RF.LoadCache("System/Setting/minus_0.png"), RF.LoadCache("System/Setting/minus_1.png"), "", view);
             hourIncBtn = new IButton(RF.LoadCache("System/Setting/add_0.png"), RF.LoadCache("System/Setting/add_1.png"), "", view);
+            backHomeBtn = new TextSmallBtn(view, "回家");
+            buttons.Add(backHomeBtn);
             buttons.Add(hourDecBtn);
             buttons.Add(hourIncBtn);
             buttons.ForEach(x => x.z = _z);
@@ -399,6 +455,10 @@ namespace iFActionScript
         {
             textSprit.clearBitmap();
             var line = 0;
+            drawText("功能：", line * _textLineHeight);
+            backHomeBtn.x = 100;
+            backHomeBtn.y = line * _textLineHeight;
+            line++;
             drawText("时间调整(1小时)：", line * _textLineHeight);
             hourDecBtn.x = 160;
             hourIncBtn.x = hourDecBtn.x + 40;
@@ -464,6 +524,7 @@ namespace iFActionScript
                     {
                         if (btn == hourIncBtn) RV.NowTime.addHour();
                         else if (btn == hourDecBtn) RV.NowTime.hour--;
+                        else if (btn == backHomeBtn) RF.goHome();
                         else return false;
 
                         return true;

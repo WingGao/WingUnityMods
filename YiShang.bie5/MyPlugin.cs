@@ -40,13 +40,14 @@ namespace YiShang.WingMod.bie5
             Logger.LogInfo($"Plugin WingMod is loaded!");
             harmony.PatchAll();
             CnfPerCarLoad = Config.Bind("Global", "CnfPerCarLoad", 4, "每辆驴车装在数");
-            CnfPerCarLoad.SettingChanged += (o, e) => { staticData.perCarLoad = CnfPerCarLoad.Value; };
+            CnfPerCarLoad.SettingChanged += setPerCarLoad;
             CnfRenwuMul = Config.Bind("Global", "CnfRenwuMul", 2f, "任务商誉倍数");
             //手动patch
             // var randomArray_RandomItem = AccessTools.Method(typeof(RandomArray), nameof(RandomArray.RandomItem), new Type[] {typeof(int).MakeByRefType()});
             // harmony.Patch(randomArray_RandomItem, null, new HarmonyMethod(AccessTools.Method(typeof(MyPatcher), nameof(MyPatcher.RandomArray_Patch))));
 
             // UniverseLib.Universe.Init(() => MyUI.Init());
+            setPerCarLoad(null, null);
         }
 
 
@@ -87,6 +88,12 @@ namespace YiShang.WingMod.bie5
         {
             Vector3 position = GameObject.Find("bigMap/cityFatherNode/" + toCityName).transform.position;
             return whereBuyWinClass.calNeedDay(GameObject.Find("bigMap/player").transform.position, position);
+        }
+
+        static void setPerCarLoad(object o, EventArgs a)
+        {
+            staticData.perCarLoad = Instance.CnfPerCarLoad.Value;
+            Log($"staticData.perCarLoad={staticData.perCarLoad}");
         }
 
         [HarmonyPatch]
@@ -155,6 +162,40 @@ namespace YiShang.WingMod.bie5
             static void RandomEventClass_Patch(ref int changeValue)
             {
                 if (changeValue < 0) changeValue *= -1;
+            }
+
+
+            /// <summary>
+            /// 媒人100%
+            /// </summary>
+            [HarmonyPatch(typeof(meirenResultWindowClass), "generaMarryPeople")]
+            [HarmonyPostfix]
+            static void meirenResultWindowClass_Patch(ref List<int> ___rateList)
+            {
+                for (var i = 0; i < ___rateList.Count; i++)
+                {
+                    ___rateList[i] = 100;
+                }
+            }
+            
+            /// <summary>
+            /// 商战必胜
+            /// </summary>
+            [HarmonyPatch(typeof(ShangZhanWindowClass), "OnEnable")]
+            [HarmonyPostfix]
+            static void ShangZhanWindowClass_Patch(ShangZhanWindowClass __instance)
+            {
+                __instance.enymySl.value = 1;
+            }
+            
+            /// <summary>
+            /// 学堂100%
+            /// </summary>
+            [HarmonyPatch(typeof(XueTangWindowClass), "calRate")]
+            [HarmonyPostfix]
+            static void XueTangWindowClass_Patch(ref int __result)
+            {
+                __result = 100;
             }
 
             /// <summary>
@@ -249,7 +290,6 @@ namespace YiShang.WingMod.bie5
                 Log($"当前任务 {JsonConvert.SerializeObject(GameManager.globalGameData.renwuData)}");
                 var renwuList = ConvertToList<YRenwu>(GameManager.globalGameData.renwuData);
                 renwuList.ForEach(rd => rd.goodList.ForEach(g => needGoods.Add(g)));
-                Log($"任务商品 {renwuList.First().goodList.First()}");
                 //城市名映射
                 cityDataCopy.ForEach(d =>
                 {
@@ -258,24 +298,6 @@ namespace YiShang.WingMod.bie5
                     CityNameCnMap[cnName] = cityKey;
                     Log($"cnName={cnName} -> {cityKey}");
                 });
-                // foreach (var cityObj in Resources.FindObjectsOfTypeAll<GameObject>().Where(obj => obj.name.StartsWith("cityGoodInfoLine")))
-                // {
-                //     var cityNameCn = cityObj.transform.Find("name").gameObject.getText();
-                //     if (CityNameCnMap.ContainsKey(cityNameCn))
-                //     {
-                //         Dictionary<string, object> cityDataStatic = dataToolClass.findCityDataStatic(CityNameCnMap[cityNameCn]);
-                //         var cityData = ConvertTo<YCity>(cityDataStatic);
-                //         Log($"当前城市 {JsonConvert.SerializeObject(cityDataStatic)}");
-                //         for (int i = 0; i < 4; ++i) //获取商品数据
-                //         {
-                //             if (needGoods.Contains(cityData.goodsData[i].goodName)) //任务商品
-                //             {
-                //                 Transform transform = cityObj.transform.Find($"good{i}");
-                //                 transform.Find("Text").gameObject.setTextColor(Color.green);
-                //             }
-                //         }
-                //     }
-                // }
             }
         }
     }

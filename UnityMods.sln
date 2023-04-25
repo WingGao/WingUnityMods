@@ -49,8 +49,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JiangCityMod3", "JiangCityM
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JiangCityMod2", "JiangCityMod2\JiangCityMod2.csproj", "{40333E5C-BB9B-473E-B578-3F8D9BE37D05}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JiangCityMod.mm", "JiangCityMod.mm\JiangCityMod.mm.csproj", "{7CFF3584-63E1-4881-8F01-6777F4764D1F}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WingUtil.Unity", "WingUtil.Unity\WingUtil.Unity.csproj", "{CD774C44-7057-4D09-877A-8EDFE23E83CC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YiShang.bie5", "YiShang.bie5\YiShang.bie5.csproj", "{978856AF-2C9B-4905-ADC1-87BE4C466B47}"
@@ -153,10 +151,6 @@ Global
 		{40333E5C-BB9B-473E-B578-3F8D9BE37D05}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{40333E5C-BB9B-473E-B578-3F8D9BE37D05}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{40333E5C-BB9B-473E-B578-3F8D9BE37D05}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7CFF3584-63E1-4881-8F01-6777F4764D1F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7CFF3584-63E1-4881-8F01-6777F4764D1F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7CFF3584-63E1-4881-8F01-6777F4764D1F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7CFF3584-63E1-4881-8F01-6777F4764D1F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{CD774C44-7057-4D09-877A-8EDFE23E83CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{CD774C44-7057-4D09-877A-8EDFE23E83CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CD774C44-7057-4D09-877A-8EDFE23E83CC}.Release|Any CPU.ActiveCfg = Release|Any CPU

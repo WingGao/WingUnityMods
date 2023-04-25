@@ -32,5 +32,10 @@ namespace JiangCityMod3
             Helper.UnPack();
             MessageBox.Show("unpack done");
         }
+        private void ButtonDepJson_OnClick(object sender, RoutedEventArgs e)
+        {
+            Helper.PatchDeps();
+            MessageBox.Show("deps done");
+        }
     }
 }

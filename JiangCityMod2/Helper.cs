@@ -1,18 +1,21 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using HarmonyLib;
 using iFActionGame2;
 using iFActionGame2.data;
+using Newtonsoft.Json;
 using WingUtil.Harmony;
+using JsonConverter = System.Text.Json.Serialization.JsonConverter;
 
 namespace WingMod
 {
     public static class Helper
     {
-        public static string GamePath = "e:\\Program Files (x86)\\Steam\\steamapps\\common\\JiangCity\\";
+        public static string GamePath = "d:\\Program Files (x86)\\Steam\\steamapps\\common\\JiangCity\\";
 
         public static bool IRWFileAssertMs(IRWFile f, string s)
         {
@@ -40,6 +43,7 @@ namespace WingMod
                 {
                     Directory.CreateDirectory(dir);
                 }
+
                 // -> File.WriteAllBytes(fullPath, pack.getFile(pf.Key));
                 File.WriteAllBytes(fullPath, WingAccessTools.InvokeMethod<object>(pack, "VEZPxV3Xs4", new object[] {pfs}) as byte[]);
             }
@@ -108,6 +112,75 @@ RF.log('WingMod End');
             w.aInt(0); //pos
 
             File.WriteAllBytes(Path.Combine(GamePath, "iFMods"), w.getByts());
+        }
+
+
+        class CoreDeps
+        {
+            public class Targets
+            {
+                [JsonProperty(".NETCoreApp,Version=v3.1")]
+                public Dictionary<string, Dep> Net31;
+            }
+
+            public class Dep
+            {
+                public Dictionary<string, string>? dependencies;
+                public Dictionary<string, Dictionary<string, string>> runtime;
+            }
+
+            public class Lib
+            {
+                public string type;
+                public bool serviceable;
+                public string sha512;
+            }
+
+            public object runtimeTarget;
+            public object compilationOptions;
+            public Targets targets;
+            public Dictionary<string, Lib> libraries;
+        }
+
+
+        /// <summary>
+        /// 给deps文件打补丁
+        /// </summary>
+        public static void PatchDeps()
+        {
+            var depPath = GamePath + "iFActionGame.deps.json";
+            var j = File.ReadAllText(depPath);
+            var coreDeps = JsonConvert.DeserializeObject<CoreDeps>(j);
+            if (coreDeps.libraries.ContainsKey("WingMod/1.0.0.0")) return; //已经运行过了
+            var myDeps = new Dictionary<string, string>()
+            {
+                {"Lib.Harmony", "2.2.2.0"},
+                {"WingMod", "1.0.0.0"},
+                {"WingUtil.Harmony", "1.0.0.0"},
+            };
+            foreach (var (key, value) in myDeps)
+            {
+                coreDeps.targets.Net31["iFActionGame/1.0.0"].dependencies[key] = value;
+                var dep = new CoreDeps.Dep()
+                {
+                    runtime = new Dictionary<string, Dictionary<string, string>>()
+                    {
+                        {
+                            key + ".dll", new Dictionary<string, string>()
+                            {
+                                {"assemblyVersion", value},
+                                {"fileVersion", value},
+                            }
+                        }
+                    }
+                };
+                coreDeps.targets.Net31.Add(key + "/" + value, dep);
+                coreDeps.libraries.Add(key + "/" + value, new CoreDeps.Lib() {type = "reference", serviceable = false, sha512 = ""});
+            }
+
+            //回写
+            var jj = JsonConvert.SerializeObject(coreDeps);
+            File.WriteAllText(depPath, jj);
         }
     }
 }

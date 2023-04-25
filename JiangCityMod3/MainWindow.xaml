@@ -9,6 +9,7 @@
     <Grid>
         <StackPanel Orientation="Horizontal">
             <Button Click="ButtonUnpack_OnClick">Unpack</Button>
+            <Button Click="ButtonDepJson_OnClick">Path deps.json</Button>
         </StackPanel>
     </Grid>
 </Window>
