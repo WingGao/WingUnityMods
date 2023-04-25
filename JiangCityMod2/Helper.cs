@@ -6,10 +6,9 @@ using System.IO;
 using System.Linq;
 using HarmonyLib;
 using iFActionGame2;
-using iFActionGame2.data;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using WingUtil.Harmony;
-using JsonConverter = System.Text.Json.Serialization.JsonConverter;
 
 namespace WingMod
 {
@@ -115,45 +114,17 @@ RF.log('WingMod End');
         }
 
 
-        class CoreDeps
-        {
-            public class Targets
-            {
-                [JsonProperty(".NETCoreApp,Version=v3.1")]
-                public Dictionary<string, Dep> Net31;
-            }
-
-            public class Dep
-            {
-                [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-                public Dictionary<string, string>? dependencies;
-                [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-                public Dictionary<string, Dictionary<string, string>> runtime;
-            }
-
-            public class Lib
-            {
-                public string type;
-                public bool serviceable;
-                public string sha512;
-            }
-
-            public object runtimeTarget;
-            public object compilationOptions;
-            public Targets targets;
-            public Dictionary<string, Lib> libraries;
-        }
-
-
         /// <summary>
         /// 给deps文件打补丁
         /// </summary>
         public static void PatchDeps()
         {
+            var oDepPath = GamePath + "iFActionGame.deps0.json"; //优先读取
             var depPath = GamePath + "iFActionGame.deps.json";
-            var j = File.ReadAllText(depPath);
-            var coreDeps = JsonConvert.DeserializeObject<CoreDeps>(j);
-            if (coreDeps.libraries.ContainsKey("WingMod/1.0.0.0")) return; //已经运行过了
+            var j = File.ReadAllText(File.Exists(oDepPath) ? oDepPath : depPath);
+            var coreDeps = JsonConvert.DeserializeObject<Dictionary<string, JObject>>(j);
+            var libraries = coreDeps["libraries"];
+            if (libraries.ContainsKey("WingMod/1.0.0.0")) return; //已经运行过了
             var myDeps = new Dictionary<string, string>()
             {
                 {"Lib.Harmony", "2.2.2.0"},
@@ -162,22 +133,45 @@ RF.log('WingMod End');
             };
             foreach (var (key, value) in myDeps)
             {
-                coreDeps.targets.Net31["iFActionGame/1.0.0"].dependencies[key] = value;
-                var dep = new CoreDeps.Dep()
+                var coreApp = coreDeps["targets"][".NETCoreApp,Version=v3.1"];
+                coreApp["iFActionGame/1.0.0"]["dependencies"][key] = value;
+                var dllFile = key + ".dll";
+                switch (key)
                 {
-                    runtime = new Dictionary<string, Dictionary<string, string>>()
-                    {
-                        {
-                            key + ".dll", new Dictionary<string, string>()
-                            {
-                                {"assemblyVersion", value},
-                                {"fileVersion", value},
-                            }
-                        }
-                    }
-                };
-                coreDeps.targets.Net31.Add(key + "/" + value, dep);
-                coreDeps.libraries.Add(key + "/" + value, new CoreDeps.Lib() {type = "reference", serviceable = false, sha512 = ""});
+                    case "Lib.Harmony":
+                        dllFile = "0Harmony.dll";
+                        break;
+                    default:
+                        break;
+                }
+                coreApp[key + "/" + value] = new JObject(
+                    new JProperty("runtime", new JObject(
+                        new JProperty(dllFile, new JObject(
+                            new JProperty("assemblyVersion", "1.0.0.0"),
+                            new JProperty("fileVersion", "1.0.0.0")
+                        ))
+                    )));
+                coreDeps["libraries"][key + "/" + value] = new JObject(
+                    new JProperty("type", "reference"),
+                    new JProperty("serviceable", false),
+                    new JProperty("sha512", "")
+                );
+                // coreDeps.targets.Net31["iFActionGame/1.0.0"].dependencies[key] = value;
+                // var dep = new CoreDeps.Dep()
+                // {
+                //     runtime = new Dictionary<string, Dictionary<string, string>>()
+                //     {
+                //         {
+                //             key + ".dll", new Dictionary<string, string>()
+                //             {
+                //                 {"assemblyVersion", value},
+                //                 {"fileVersion", value},
+                //             }
+                //         }
+                //     }
+                // };
+                // coreDeps.targets.Net31.Add(key + "/" + value, dep);
+                // coreDeps.libraries.Add(key + "/" + value, new CoreDeps.Lib() {type = "reference", serviceable = false, sha512 = ""});
             }
 
             //回写

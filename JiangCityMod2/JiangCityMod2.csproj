@@ -9,7 +9,7 @@
 
     <ItemGroup>
       <Reference Include="0Harmony">
-        <HintPath>_game\Lib.Harmony.dll</HintPath>
+        <HintPath>plib\0Harmony.dll</HintPath>
       </Reference>
       <Reference Include="iFActionGame">
         <HintPath>..\JiangCityMod.mm\_game\iFActionGame.dll</HintPath>
