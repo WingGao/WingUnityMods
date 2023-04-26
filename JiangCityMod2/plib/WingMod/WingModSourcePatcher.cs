@@ -21,6 +21,7 @@ namespace iFActionScript
         public bool GiveItemAnyMax = true; //赠送任何东西都是最喜欢
         public bool MakeItemOneTime = true; //一次敲击
         public float MakeItemSpeed = 10; //制作速度
+        public float MachineSpeed = 0; //机器生成速度
         public bool TaskNoLimit = true; //任务无上限
         public bool GameTouhuEasy = true; //小游戏投壶最高分
         public bool BuildNoCost = false; //建造不消耗
@@ -279,6 +280,35 @@ namespace iFActionScript
             }
         }
 
+        //所有机器
+        [HarmonyPatch(typeof(GBuildMachine))]
+        public class GBuildMachinePatch
+        {
+            /// <summary>
+            /// 修改机器生成速度
+            /// </summary>
+            /// <param name="__instance"></param>
+            [HarmonyPatch(nameof(GBuildMachine.updateS))]
+            [HarmonyPostfix]
+            static void updateS_Patch(GBuildMachine __instance)
+            {
+                update_Patch(__instance);
+            }
+
+            [HarmonyPatch(nameof(GBuildMachine.update))]
+            [HarmonyPostfix]
+            static void update_Patch(GBuildMachine __instance)
+            {
+                if (__instance.nowFormula != null)
+                {
+                    if (__instance.isCanMake() == 1 && __instance.nowTime > 0)
+                    {
+                        __instance.nowTime += __instance.nowFormula.time / 100 * Settings.MachineSpeed;
+                    }
+                }
+            }
+        }
+
         [HarmonyPatch(typeof(WMenuSys))]
         public class WMenuSysPatch
         {
@@ -445,6 +475,7 @@ namespace iFActionScript
         private IViewport view;
         private FloatSlider moveSpeedBar;
         private FloatSlider makeSpeedBar;
+        private FloatSlider machineSpeedBar;
         private WingCheckBox giveItemAnyMaxBox;
         private WingCheckBox canPenetrateBox;
         private WingCheckBox makeItemOnceBox;
@@ -487,6 +518,11 @@ namespace iFActionScript
                 if (v.HasValue) WingSourceHarmPatcher.Settings.MakeItemSpeed = v.Value;
                 return WingSourceHarmPatcher.Settings.MakeItemSpeed;
             }, 29);
+            machineSpeedBar = new FloatSlider(view, (v) =>
+            {
+                if (v.HasValue) WingSourceHarmPatcher.Settings.MachineSpeed = v.Value;
+                return WingSourceHarmPatcher.Settings.MachineSpeed;
+            }, 100);
 
 
             giveItemAnyMaxBox = new WingCheckBox(view, WingSourceHarmPatcher.Settings.GiveItemAnyMax);
@@ -534,6 +570,7 @@ namespace iFActionScript
             drawCheckBox("赠送任何东西都是最喜欢(需重启)：", giveItemAnyMaxBox, line++);
             drawCheckBox("制作敲击1次：", makeItemOnceBox, line++);
             drawSlider("制作速度：", makeSpeedBar, line++);
+            drawSlider("机器生产速度：", machineSpeedBar, line++);
             drawCheckBox("任务无上限(需重启)：", taskLimitBox, line++);
             drawCheckBox("建造不消耗：", buildNoCostBox, line++);
             drawCheckBox("科技不消耗：", ScienceStudyMinBox, line++);
