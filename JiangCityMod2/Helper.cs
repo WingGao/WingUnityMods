@@ -14,7 +14,19 @@ namespace WingMod
 {
     public static class Helper
     {
-        public static string GamePath = "d:\\Program Files (x86)\\Steam\\steamapps\\common\\JiangCity\\";
+        private static List<String> SteamDirs = new List<string>() {"d:\\Program Files (x86)\\Steam", "e:\\Program Files (x86)\\Steam"};
+        static string _GamePath;
+
+        static String GamePath()
+        {
+            if (_GamePath == null)
+            {
+                _GamePath = SteamDirs.Select(d => d + "\\steamapps\\common\\JiangCity").First(d => Directory.Exists(d));
+                _GamePath += "\\";
+            }
+
+            return _GamePath;
+        }
 
         public static bool IRWFileAssertMs(IRWFile f, string s)
         {
@@ -26,7 +38,7 @@ namespace WingMod
         /// </summary>
         public static void UnPack()
         {
-            IVal.BasePath = GamePath;
+            IVal.BasePath = GamePath();
             var dpackClassName = "ypYelOSLmnAUSe2WuA.nqUuKJcbtj5XBCQC65";
             var dpackType = AccessTools.TypeByName(dpackClassName);
             var pack = AccessTools.GetDeclaredConstructors(dpackType).First().Invoke(new object[] {"iFCon"});
@@ -36,7 +48,7 @@ namespace WingMod
             {
                 var pfs = pf as string;
                 Debug.WriteLine(pfs);
-                var fullPath = Path.Combine(GamePath, "unpack", pfs);
+                var fullPath = Path.Combine(GamePath(), "unpack", pfs);
                 var dir = Path.GetDirectoryName(fullPath);
                 if (!File.Exists(dir))
                 {
@@ -110,7 +122,7 @@ RF.log('WingMod End');
             w.aString("WingMod"); // this.key = rd.ReadString();
             w.aInt(0); //pos
 
-            File.WriteAllBytes(Path.Combine(GamePath, "iFMods"), w.getByts());
+            File.WriteAllBytes(Path.Combine(GamePath(), "iFMods"), w.getByts());
         }
 
 
@@ -119,8 +131,8 @@ RF.log('WingMod End');
         /// </summary>
         public static void PatchDeps()
         {
-            var oDepPath = GamePath + "iFActionGame.deps0.json"; //优先读取
-            var depPath = GamePath + "iFActionGame.deps.json";
+            var oDepPath = GamePath() + "iFActionGame.deps0.json"; //优先读取
+            var depPath = GamePath() + "iFActionGame.deps.json";
             var j = File.ReadAllText(File.Exists(oDepPath) ? oDepPath : depPath);
             var coreDeps = JsonConvert.DeserializeObject<Dictionary<string, JObject>>(j);
             var libraries = coreDeps["libraries"];

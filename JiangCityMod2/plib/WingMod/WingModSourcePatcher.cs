@@ -20,7 +20,7 @@ namespace iFActionScript
         public bool CanPenetrate = true; //穿墙
         public bool GiveItemAnyMax = true; //赠送任何东西都是最喜欢
         public bool MakeItemOneTime = true; //一次敲击
-        public float MakeItemSpeed = 2; //制作速度
+        public float MakeItemSpeed = 10; //制作速度
         public bool TaskNoLimit = true; //任务无上限
         public bool GameTouhuEasy = true; //小游戏投壶最高分
         public bool BuildNoCost = false; //建造不消耗
@@ -108,7 +108,7 @@ namespace iFActionScript
                 if (Settings.MakeItemOneTime && ___nowSelect != null && ___canMake)
                 {
                     ___nowMKT = (___nowSelect.tag as GDFormula).makeTimes;
-                    ___makeTimeMax = 20;
+                    ___makeTimeMax = (int) (30 - Settings.MakeItemSpeed);
                 }
             }
 
@@ -444,6 +444,7 @@ namespace iFActionScript
     {
         private IViewport view;
         private FloatSlider moveSpeedBar;
+        private FloatSlider makeSpeedBar;
         private WingCheckBox giveItemAnyMaxBox;
         private WingCheckBox canPenetrateBox;
         private WingCheckBox makeItemOnceBox;
@@ -462,6 +463,7 @@ namespace iFActionScript
         private List<WingCheckBox> checkBoxes = new List<WingCheckBox>();
         private List<IButton> buttons = new List<IButton>();
         private List<FloatSlider> sliders = new List<FloatSlider>();
+        private List<ISprite> sprites = new List<ISprite>();
 
         private int _z = 3000;
         private int _textX = 15;
@@ -475,12 +477,18 @@ namespace iFActionScript
             closeBtn.x = 500;
             view = new IViewport(26, 86, 560, 583);
             view.z = _z;
-            moveSpeedBar = new FloatSlider(view, WingSourceHarmPatcher.Settings.MoveSpeed, 10);
-            moveSpeedBar.onChangeValue += value =>
+            moveSpeedBar = new FloatSlider(view, (v) =>
             {
-                WingSourceHarmPatcher.Settings.MoveSpeed = (float) value;
-                drawUIText();
-            };
+                if (v.HasValue) WingSourceHarmPatcher.Settings.MoveSpeed = v.Value;
+                return WingSourceHarmPatcher.Settings.MoveSpeed;
+            }, 10);
+            makeSpeedBar = new FloatSlider(view, (v) =>
+            {
+                if (v.HasValue) WingSourceHarmPatcher.Settings.MakeItemSpeed = v.Value;
+                return WingSourceHarmPatcher.Settings.MakeItemSpeed;
+            }, 29);
+
+
             giveItemAnyMaxBox = new WingCheckBox(view, WingSourceHarmPatcher.Settings.GiveItemAnyMax);
             canPenetrateBox = new WingCheckBox(view, WingSourceHarmPatcher.Settings.CanPenetrate);
             makeItemOnceBox = new WingCheckBox(view, WingSourceHarmPatcher.Settings.MakeItemOneTime);
@@ -517,13 +525,15 @@ namespace iFActionScript
             hourIncBtn.x = hourDecBtn.x + 40;
             hourDecBtn.y = hourIncBtn.y = line * _textLineHeight;
             line++;
-            moveSpeedBar.x = 95 + 10;
-            moveSpeedBar.y = line * _textLineHeight + 5;
-            drawText(WingSourceHarmPatcher.Settings.MoveSpeed.ToString("0.0"), line * _textLineHeight, 330);
-            drawText("移动速度：", line++ * _textLineHeight);
+            // moveSpeedBar.x = 95 + 10;
+            // moveSpeedBar.y = line * _textLineHeight + 5;
+            // drawText(WingSourceHarmPatcher.Settings.MoveSpeed.ToString("0.0"), line * _textLineHeight, 330);
+            // drawText("移动速度：", line++ * _textLineHeight);
+            drawSlider("移动速度：", moveSpeedBar, line++);
             drawCheckBox("穿墙：", canPenetrateBox, line++);
             drawCheckBox("赠送任何东西都是最喜欢(需重启)：", giveItemAnyMaxBox, line++);
             drawCheckBox("制作敲击1次：", makeItemOnceBox, line++);
+            drawSlider("制作速度：", makeSpeedBar, line++);
             drawCheckBox("任务无上限(需重启)：", taskLimitBox, line++);
             drawCheckBox("建造不消耗：", buildNoCostBox, line++);
             drawCheckBox("科技不消耗：", ScienceStudyMinBox, line++);
@@ -537,6 +547,19 @@ namespace iFActionScript
             box.Pos((int) IFont.getWidth(text, 16) + 40, line * _textLineHeight, _z);
             drawText(text, line * _textLineHeight);
             checkBoxes.Add(box);
+        }
+
+        void drawSlider(string text, FloatSlider slider, int line)
+        {
+            slider.x = (int) IFont.getWidth(text, 16) + 40;
+            slider.y = line * _textLineHeight;
+            drawText(text, line * _textLineHeight);
+            var lab = new WingText(slider.nowValue.ToString("0.0"), view);
+            lab.x = slider.x + slider.width + 20;
+            lab.y = slider.y;
+            slider.onChangeValue += (v) => lab.text = v.ToString("0.0");
+            sliders.Add(slider);
+            sprites.Add(lab);
         }
 
         void drawText(string t, int y, int? x = null)
@@ -553,7 +576,7 @@ namespace iFActionScript
                 return true;
             }
 
-            if (moveSpeedBar.updateCtrl()) return true;
+            if (sliders.FirstOrDefault(s => s.updateCtrl()) != null) return true;
             if (checkBoxes.FirstOrDefault(box =>
                 {
                     if (box.update())
@@ -600,6 +623,8 @@ namespace iFActionScript
             moveSpeedBar.disposeMin();
             checkBoxes.ForEach(x => x.disposeMin());
             buttons.ForEach(x => x.disposeMin());
+            sliders.ForEach(x => x.disposeMin());
+            sprites.ForEach(x => x.disposeMin());
             RV.NowTime.timeLock = preTimeLock; //时间状态回复
             WingSourceHarmPatcher.SaveSetting();
         }
@@ -609,11 +634,12 @@ namespace iFActionScript
         /// </summary>
         class FloatSlider : CBar
         {
-            public FloatSlider(IViewport view, double v, double vMax) : base(RF.LoadCache("System/Setting/volBar_0.png"),
+            public FloatSlider(IViewport view, Func<float?, float> change, double vMax) : base(RF.LoadCache("System/Setting/volBar_0.png"),
                 RF.LoadCache("System/Setting/volBar_1.png"), 0, view)
             {
-                setValue(v, vMax); //注意顺序
+                setValue(change(null), vMax); //注意顺序
                 setMove(RF.LoadCache("System/Setting/volBtn_0.png"), RF.LoadCache("System/Setting/volBtn_1.png"));
+                this.onChangeValue += (cv) => { change((float) cv); };
             }
         }
 
@@ -631,6 +657,27 @@ namespace iFActionScript
             {
                 var w = RF.GetFW(text, 12);
                 drawTitleQ(text, RV.colT1, 12);
+            }
+        }
+
+        class WingText : ISprite
+        {
+            private string _text;
+
+            public string text
+            {
+                get => _text;
+                set
+                {
+                    _text = value;
+                    clearBitmap();
+                    drawTextQ(_text, 0, 0, RV.colT1, 16);
+                }
+            }
+
+            public WingText(string text, IViewport viewport = null) : base(300, 50, IColor.Transparent(), viewport)
+            {
+                this.text = text;
             }
         }
 

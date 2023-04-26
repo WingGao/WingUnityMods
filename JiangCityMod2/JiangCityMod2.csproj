@@ -12,7 +12,7 @@
         <HintPath>plib\0Harmony.dll</HintPath>
       </Reference>
       <Reference Include="iFActionGame">
-        <HintPath>..\JiangCityMod.mm\_game\iFActionGame.dll</HintPath>
+        <HintPath>_game\iFActionGame.dll</HintPath>
       </Reference>
       <Reference Include="Microsoft.CodeAnalysis">
         <HintPath>_game\Microsoft.CodeAnalysis.dll</HintPath>
