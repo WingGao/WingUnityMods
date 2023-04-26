@@ -20,11 +20,13 @@ namespace iFActionScript
         public bool CanPenetrate = true; //穿墙
         public bool GiveItemAnyMax = true; //赠送任何东西都是最喜欢
         public bool MakeItemOneTime = true; //一次敲击
+        public float MakeItemSpeed = 2; //制作速度
         public bool TaskNoLimit = true; //任务无上限
         public bool GameTouhuEasy = true; //小游戏投壶最高分
         public bool BuildNoCost = false; //建造不消耗
         public bool QuickCollect = true; //快速搜集
         public bool QuickTool = true; //快速使用工具
+        public bool ScienceStudyMin = true; //科技最低要求
         public Dictionary<string, string> Extensions = new Dictionary<string, string>(); //其他扩展
     }
 
@@ -36,7 +38,7 @@ namespace iFActionScript
         {
             var p = new Harmony("WingMod.SourcePatcher");
             p.PatchAll();
-            RV.ver += " (WingMod v0.0.2)";
+            RV.ver += " (WingMod v0.0.3)";
             LoadSetting();
             OnPatch();
         }
@@ -204,6 +206,17 @@ namespace iFActionScript
             }
         }
 
+        [HarmonyPatch(typeof(SMain))]
+        public class SMainPatch
+        {
+            [HarmonyPatch(nameof(SMain.init))]
+            [HarmonyPrefix]
+            static void init_patch(int ___startId)
+            {
+                FileLog.Log($"SMain.init mapId={___startId}");
+            }
+        }
+
         [HarmonyPatch(typeof(LActorEx))]
         public class LActorExPatch
         {
@@ -338,7 +351,17 @@ namespace iFActionScript
                         int x = (int) ___nowNpc.nowX;
                         int y = (int) ___nowNpc.nowY;
                         FileLog.Log($"传送到{___nowNpc.name} nowMapId={___nowNpc.nowMapId} x={x} y={y}");
-                        LScript.toNMap(___nowNpc.nowMapId.ToString(), (x + 20).ToString(), y.ToString(), "0");
+                        if (___nowNpc.nowMapId == 1)
+                        {
+                            var toMap = RF.LoadMap(___nowNpc.nowMapId);
+                            FileLog.Log($"无法传送 {toMap.name}");
+                            RF.showTips("无法传送");
+                        }
+                        else
+                        {
+                            // x = y = 0;
+                            LScript.toNMap(___nowNpc.nowMapId.ToString(), (x + 20).ToString(), y.ToString(), "0");
+                        }
                     }
                     else return;
 
@@ -385,6 +408,33 @@ namespace iFActionScript
                 return cursor.Context.AsEnumerable();
             }
         }
+
+        [HarmonyPatch(typeof(WScienceMin))]
+        public class WScienceMinPatch
+        {
+            /// <summary>
+            /// 科技低要求
+            /// </summary>
+            [HarmonyPatch(nameof(WScienceMin.canStudy))]
+            [HarmonyPostfix]
+            static void canStudyPatch(ref int __result)
+            {
+                // if (Settings.ScienceStudyMin) __result = 0;
+            }
+
+            [HarmonyPatch(nameof(WScienceMin.studyDo))]
+            [HarmonyPrefix]
+            static void studyDoPatch(GDScience ___data)
+            {
+                if (Settings.ScienceStudyMin) //补齐扣除的晶能
+                {
+                    for (int i = 0; i < ___data.price.Length; i++)
+                    {
+                        RV.GameData.mana[i] += ___data.price[i];
+                    }
+                }
+            }
+        }
     }
 
     /// <summary>
@@ -402,6 +452,7 @@ namespace iFActionScript
         private WingCheckBox buildNoCostBox;
         private WingCheckBox quickCollectBox;
         private WingCheckBox quickToolBox;
+        private WingCheckBox ScienceStudyMinBox;
         private IButton backHomeBtn;
         private IButton hourDecBtn;
         private IButton hourIncBtn;
@@ -410,6 +461,7 @@ namespace iFActionScript
         CloseBtn closeBtn = new CloseBtn();
         private List<WingCheckBox> checkBoxes = new List<WingCheckBox>();
         private List<IButton> buttons = new List<IButton>();
+        private List<FloatSlider> sliders = new List<FloatSlider>();
 
         private int _z = 3000;
         private int _textX = 15;
@@ -437,6 +489,7 @@ namespace iFActionScript
             gameTouhuBox = new WingCheckBox(view, WingSourceHarmPatcher.Settings.GameTouhuEasy);
             quickCollectBox = new WingCheckBox(view, WingSourceHarmPatcher.Settings.QuickCollect);
             quickToolBox = new WingCheckBox(view, WingSourceHarmPatcher.Settings.QuickTool);
+            ScienceStudyMinBox = new WingCheckBox(view, WingSourceHarmPatcher.Settings.ScienceStudyMin);
 
             hourDecBtn = new IButton(RF.LoadCache("System/Setting/minus_0.png"), RF.LoadCache("System/Setting/minus_1.png"), "", view);
             hourIncBtn = new IButton(RF.LoadCache("System/Setting/add_0.png"), RF.LoadCache("System/Setting/add_1.png"), "", view);
@@ -473,6 +526,7 @@ namespace iFActionScript
             drawCheckBox("制作敲击1次：", makeItemOnceBox, line++);
             drawCheckBox("任务无上限(需重启)：", taskLimitBox, line++);
             drawCheckBox("建造不消耗：", buildNoCostBox, line++);
+            drawCheckBox("科技不消耗：", ScienceStudyMinBox, line++);
             drawCheckBox("快速搜集：", quickCollectBox, line++);
             drawCheckBox("快速砍树/破石：", quickToolBox, line++);
             drawCheckBox("小游戏投壶最高分：", gameTouhuBox, line++);
@@ -512,6 +566,7 @@ namespace iFActionScript
                         else if (box == gameTouhuBox) WingSourceHarmPatcher.Settings.GameTouhuEasy = box.select;
                         else if (box == quickCollectBox) WingSourceHarmPatcher.Settings.QuickCollect = box.select;
                         else if (box == quickToolBox) WingSourceHarmPatcher.Settings.QuickTool = box.select;
+                        else if (box == ScienceStudyMinBox) WingSourceHarmPatcher.Settings.ScienceStudyMin = box.select;
                         else return false;
                         return true;
                     }
