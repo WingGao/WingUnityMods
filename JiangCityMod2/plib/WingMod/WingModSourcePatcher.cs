@@ -146,6 +146,21 @@ namespace iFActionScript
             }
 
             /// <summary>
+            /// 小游戏龙舟最高分
+            /// </summary>
+            /// <param name="__instance"></param>
+            [HarmonyPatch(typeof(GLMapMinGameLongZhou), nameof(GLMapMinGameLongZhou.update))]
+            [HarmonyPrefix]
+            static void GLMapMinGameTouhu_update_patch(ISprite ___qiu, ISprite ___bar, ref bool ___keyOverL)
+            {
+                if (Settings.GameTouhuEasy)
+                {
+                    ___qiu.x = ___bar.x + 20; //定住球
+                    ___keyOverL = false;
+                }
+            }
+
+            /// <summary>
             /// 建造不消耗
             /// </summary>
             /// <param name="__instance"></param>
@@ -255,10 +270,17 @@ namespace iFActionScript
                     cursor.Next.Instruction.operand = 30;
                     cursor.Index += 1;
                     cursor.Emit(OpCodes.Stloc_0);
+                    cursor.Emit(OpCodes.Call, AccessTools.Method(typeof(NPCBasePatch), nameof(AddTel)));
                     cursor.Emit(old.opcode, old.operand);
                 }
 
                 return cursor.Context.AsEnumerable();
+            }
+
+            static void AddTel()
+            {
+                //送礼额外加18点经验
+                RV.GameData.occ[1].addExp(18, 2);
             }
         }
 
@@ -576,7 +598,7 @@ namespace iFActionScript
             drawCheckBox("科技不消耗：", ScienceStudyMinBox, line++);
             drawCheckBox("快速搜集：", quickCollectBox, line++);
             drawCheckBox("快速砍树/破石：", quickToolBox, line++);
-            drawCheckBox("小游戏投壶最高分：", gameTouhuBox, line++);
+            drawCheckBox("小游戏投壶/龙舟最高分：", gameTouhuBox, line++);
         }
 
         void drawCheckBox(string text, WingCheckBox box, int line)
