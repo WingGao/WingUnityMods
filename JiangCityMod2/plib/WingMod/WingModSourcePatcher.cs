@@ -28,6 +28,7 @@ namespace iFActionScript
         public bool QuickCollect = true; //快速搜集
         public bool QuickTool = true; //快速使用工具
         public bool ScienceStudyMin = true; //科技最低要求
+        public bool SkillNoCd = true; //技能无cd
         public Dictionary<string, string> Extensions = new Dictionary<string, string>(); //其他扩展
     }
 
@@ -246,6 +247,22 @@ namespace iFActionScript
             {
                 __result *= Settings.MoveSpeed;
                 __instance.characters.canPenetrate = Settings.CanPenetrate;
+            }
+
+            /// <summary>
+            /// 技能无cd
+            /// </summary>
+            [HarmonyPatch(nameof(LActorEx.updateCtrl))]
+            [HarmonyPostfix]
+            static void updateCtrlPatch(LActorEx __instance)
+            {
+                if (RV.isBattle && Settings.SkillNoCd)
+                {
+                    if (RV.HUD.QBattle.cd[1] > 1)
+                    {
+                        RV.HUD.QBattle.cd[1] = 1;
+                    }
+                }
             }
         }
 
@@ -507,6 +524,7 @@ namespace iFActionScript
         private WingCheckBox quickCollectBox;
         private WingCheckBox quickToolBox;
         private WingCheckBox ScienceStudyMinBox;
+        private WingCheckBox SkillNoCdBox;
         private IButton backHomeBtn;
         private IButton hourDecBtn;
         private IButton hourIncBtn;
@@ -556,6 +574,7 @@ namespace iFActionScript
             quickCollectBox = new WingCheckBox(view, WingSourceHarmPatcher.Settings.QuickCollect);
             quickToolBox = new WingCheckBox(view, WingSourceHarmPatcher.Settings.QuickTool);
             ScienceStudyMinBox = new WingCheckBox(view, WingSourceHarmPatcher.Settings.ScienceStudyMin);
+            SkillNoCdBox = new WingCheckBox(view, WingSourceHarmPatcher.Settings.SkillNoCd);
 
             hourDecBtn = new IButton(RF.LoadCache("System/Setting/minus_0.png"), RF.LoadCache("System/Setting/minus_1.png"), "", view);
             hourIncBtn = new IButton(RF.LoadCache("System/Setting/add_0.png"), RF.LoadCache("System/Setting/add_1.png"), "", view);
@@ -589,6 +608,7 @@ namespace iFActionScript
             // drawText("移动速度：", line++ * _textLineHeight);
             drawSlider("移动速度：", moveSpeedBar, line++);
             drawCheckBox("穿墙：", canPenetrateBox, line++);
+            drawCheckBox("技能无CD：", SkillNoCdBox, line++);
             drawCheckBox("赠送任何东西都是最喜欢(需重启)：", giveItemAnyMaxBox, line++);
             drawCheckBox("制作敲击1次：", makeItemOnceBox, line++);
             drawSlider("制作速度：", makeSpeedBar, line++);
@@ -649,6 +669,7 @@ namespace iFActionScript
                         else if (box == quickCollectBox) WingSourceHarmPatcher.Settings.QuickCollect = box.select;
                         else if (box == quickToolBox) WingSourceHarmPatcher.Settings.QuickTool = box.select;
                         else if (box == ScienceStudyMinBox) WingSourceHarmPatcher.Settings.ScienceStudyMin = box.select;
+                        else if (box == SkillNoCdBox) WingSourceHarmPatcher.Settings.SkillNoCd = box.select;
                         else return false;
                         return true;
                     }
