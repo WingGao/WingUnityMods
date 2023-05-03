@@ -11,4 +11,17 @@
       <ProjectReference Include="..\JiangCityMod2\JiangCityMod2.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Reference Include="iFActionGame">
+        <HintPath>..\JiangCityMod2\_game\iFActionGame.dll</HintPath>
+      </Reference>
+      <Reference Include="Newtonsoft.Json">
+        <HintPath>..\JiangCityMod2\_game\Newtonsoft.Json.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="gameSrc" />
+    </ItemGroup>
+
 </Project>

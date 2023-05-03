@@ -13,6 +13,15 @@ using WingUtil.Harmony;
 // WingModScript
 namespace iFActionScript
 {
+    /// <summary>
+    /// 保存在存档里的配置
+    /// </summary>
+    public class WingModSavingConfig
+    {
+        public string key;
+        public string value;
+    }
+
     public class WingModSettingJSon
     {
         public int HotKey = IInput.CodeToWinKey(Keys.F4);
@@ -27,20 +36,32 @@ namespace iFActionScript
         public bool BuildNoCost = false; //建造不消耗
         public bool QuickCollect = true; //快速搜集
         public bool QuickTool = true; //快速使用工具
-        public bool ScienceStudyMin = true; //科技最低要求
-        public bool SkillNoCd = true; //技能无cd
+        public bool ScienceStudyMin = false; //科技最低要求
+        public bool SkillNoCd = false; //技能无cd
+        public bool EnemyDrop100 = true; //怪物掉落100%
+        public bool ItemNoSub = false; //物品不减
         public Dictionary<string, string> Extensions = new Dictionary<string, string>(); //其他扩展
     }
 
     public static class WingSourceHarmPatcher
     {
+        public static int WINGMOD_SAVING_ID = 459171748;
+
+        /// <summary>
+        /// 存档外的独立数据
+        /// </summary>
         public static WingModSettingJSon Settings = new WingModSettingJSon();
+
+        /// <summary>
+        /// 存档内的MOD数据
+        /// </summary>
+        public static Dictionary<string, string> ModSaveSettings = new Dictionary<string, string>();
 
         public static void Patch()
         {
             var p = new Harmony("WingMod.SourcePatcher");
             p.PatchAll();
-            RV.ver += " (WingMod v0.0.3)";
+            RV.ver += " (WingMod v0.0.4)";
             LoadSetting();
             OnPatch();
         }
@@ -66,9 +87,54 @@ namespace iFActionScript
             File.WriteAllText(IVal.BasePath + SaveFile, JsonConvert.SerializeObject(Settings));
         }
 
+        /// <summary>
+        /// 在这里写上数据加载
+        /// </summary>
+        public static void OnSaveLoad(GMain gmain)
+        {
+            FileLog.Log("WingSourceHarmPatcher.OnSaveLoad");
+        }
+
+        /// <summary>
+        /// 在这里写上数据保存
+        /// </summary>
+        public static void OnSaveWrite(GMain gmain)
+        {
+            FileLog.Log("WingSourceHarmPatcher.OnSaveWrite");
+        }
+
         [HarmonyPatch]
         public class SourcePatches
         {
+            class FakeIWFile : IRWFile
+            {
+                public FakeIWFile() : base("fake")
+                {
+                }
+
+                public int ReadInt() => 0;
+
+                public string ReadString() => "";
+                public bool ReadBool() => false;
+            }
+
+            /// <summary>
+            /// 补充MOD变量
+            /// </summary>
+            // [HarmonyPatch(typeof(DProject), nameof(DProject.initValue))]
+            // [HarmonyPostfix]
+            // static void DProject_initValue(ref Dictionary<int, object> __result)
+            // {
+            //     var dv = new DValue(new FakeIWFile());
+            //     dv.id = WINGMOD_SAVING_ID;
+            //     dv.name = "WINGMOD_SAVING_ID";
+            //     dv.type = 2;
+            //     dv.defValue = "{}";
+            //     dv.staticValue = false;
+            //     __result[WINGMOD_SAVING_ID] = dv;
+            //     FileLog.Log($"DProject_initValue {dv.id}={dv.name}");
+            // }
+
             /// <summary>
             /// 显示Log
             /// </summary>
@@ -162,6 +228,20 @@ namespace iFActionScript
             }
 
             /// <summary>
+            /// 中秋最高分
+            /// </summary>
+            /// <param name="__instance"></param>
+            [HarmonyPatch(typeof(WZhongQiuItem), nameof(WZhongQiuItem.overDo))]
+            [HarmonyPostfix]
+            static void WZhongQiuItem_overDo_patch()
+            {
+                if (Settings.GameTouhuEasy)
+                {
+                    RV.GameData.value[178] = 1;
+                }
+            }
+
+            /// <summary>
             /// 建造不消耗
             /// </summary>
             /// <param name="__instance"></param>
@@ -182,6 +262,47 @@ namespace iFActionScript
         [HarmonyPatch(typeof(GMain))]
         public class GMainPatch
         {
+            //存档加载后
+            [HarmonyPatch(MethodType.Constructor, new[] {typeof(string)})]
+            [HarmonyPostfix]
+            [HarmonyPriority(Priority.First)]
+            static void OnSaveLoad(GMain __instance)
+            {
+                if (__instance.value.ContainsKey(WINGMOD_SAVING_ID))
+                {
+                    var s = __instance.value[WINGMOD_SAVING_ID] as string;
+                    FileLog.Log($"WINGMOD_SAVING: {s}");
+                    try
+                    {
+                        ModSaveSettings = JsonConvert.DeserializeObject<Dictionary<string, string>>(s);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
+                    }
+                }
+                else
+                {
+                    FileLog.Log($"WINGMOD_SAVING: null");
+                }
+
+                if (ModSaveSettings == null) ModSaveSettings = new Dictionary<string, string>();
+
+                WingSourceHarmPatcher.OnSaveLoad(__instance);
+            }
+
+            //写入存档
+            [HarmonyPatch(nameof(GMain.write))]
+            [HarmonyPrefix]
+            [HarmonyPriority(Priority.First)]
+            static void OnSaveWrite(GMain __instance)
+            {
+                WingSourceHarmPatcher.OnSaveWrite(__instance);
+                var s = JsonConvert.SerializeObject(ModSaveSettings);
+                FileLog.Log($"OnSaveWrite: {s}");
+                __instance.value[WINGMOD_SAVING_ID] = s;
+            }
+
             /// <summary>
             /// 任务无上限
             /// </summary>
@@ -219,6 +340,7 @@ namespace iFActionScript
             static bool subItemPatch(int id)
             {
                 if (id == 980) return false; //天机石不消耗
+                if (Settings.ItemNoSub && RV.GameData.getItemNum(id) > 1) return false; //大于1 不减
                 return true;
             }
         }
@@ -266,6 +388,7 @@ namespace iFActionScript
             }
         }
 
+
         [HarmonyPatch(typeof(NPCBase))]
         public class NPCBasePatch
         {
@@ -298,6 +421,29 @@ namespace iFActionScript
             {
                 //送礼额外加18点经验
                 RV.GameData.occ[1].addExp(18, 2);
+            }
+        }
+
+
+        [HarmonyPatch(typeof(LEnemy))]
+        public class LEnemyPatch
+        {
+            /// <summary>
+            /// 怪物必掉落
+            /// </summary>
+            [HarmonyPatch(nameof(LEnemy.addItem))]
+            [HarmonyTranspiler]
+            static IEnumerable<CodeInstruction> addItem_patch(IEnumerable<CodeInstruction> instructions)
+            {
+                // return instructions;
+                ILCursor cursor = new ILCursor(instructions);
+                if (cursor.TryGotoNext(it => it.Instruction.MatchCallByName("iFActionScript.RF::ProbabilityHit")) && Settings.EnemyDrop100)
+                {
+                    cursor.Index += 1;
+                    cursor.Next.Instruction.opcode = OpCodes.Pop;
+                }
+
+                return cursor.Context.AsEnumerable();
             }
         }
 
@@ -342,7 +488,7 @@ namespace iFActionScript
                 {
                     if (__instance.isCanMake() == 1 && __instance.nowTime > 0)
                     {
-                        __instance.nowTime += __instance.nowFormula.time / 100 * Settings.MachineSpeed;
+                        __instance.nowTime += __instance.nowFormula.time * Settings.MachineSpeed / 100;
                     }
                 }
             }
@@ -525,6 +671,8 @@ namespace iFActionScript
         private WingCheckBox quickToolBox;
         private WingCheckBox ScienceStudyMinBox;
         private WingCheckBox SkillNoCdBox;
+        private WingCheckBox EnemyDrop100Box;
+        private WingCheckBox ItemNoSubBox;
         private IButton backHomeBtn;
         private IButton hourDecBtn;
         private IButton hourIncBtn;
@@ -575,6 +723,8 @@ namespace iFActionScript
             quickToolBox = new WingCheckBox(view, WingSourceHarmPatcher.Settings.QuickTool);
             ScienceStudyMinBox = new WingCheckBox(view, WingSourceHarmPatcher.Settings.ScienceStudyMin);
             SkillNoCdBox = new WingCheckBox(view, WingSourceHarmPatcher.Settings.SkillNoCd);
+            EnemyDrop100Box = new WingCheckBox(view, WingSourceHarmPatcher.Settings.EnemyDrop100);
+            ItemNoSubBox = new WingCheckBox(view, WingSourceHarmPatcher.Settings.ItemNoSub);
 
             hourDecBtn = new IButton(RF.LoadCache("System/Setting/minus_0.png"), RF.LoadCache("System/Setting/minus_1.png"), "", view);
             hourIncBtn = new IButton(RF.LoadCache("System/Setting/add_0.png"), RF.LoadCache("System/Setting/add_1.png"), "", view);
@@ -609,6 +759,8 @@ namespace iFActionScript
             drawSlider("移动速度：", moveSpeedBar, line++);
             drawCheckBox("穿墙：", canPenetrateBox, line++);
             drawCheckBox("技能无CD：", SkillNoCdBox, line++);
+            drawCheckBox("物品不减（数量大于1）：", ItemNoSubBox, line++);
+            drawCheckBox("怪物必掉落(需重启)：", EnemyDrop100Box, line++);
             drawCheckBox("赠送任何东西都是最喜欢(需重启)：", giveItemAnyMaxBox, line++);
             drawCheckBox("制作敲击1次：", makeItemOnceBox, line++);
             drawSlider("制作速度：", makeSpeedBar, line++);
@@ -618,7 +770,7 @@ namespace iFActionScript
             drawCheckBox("科技不消耗：", ScienceStudyMinBox, line++);
             drawCheckBox("快速搜集：", quickCollectBox, line++);
             drawCheckBox("快速砍树/破石：", quickToolBox, line++);
-            drawCheckBox("小游戏投壶/龙舟最高分：", gameTouhuBox, line++);
+            drawCheckBox("小游戏投壶/龙舟/中秋最高分：", gameTouhuBox, line++);
         }
 
         void drawCheckBox(string text, WingCheckBox box, int line)
@@ -670,6 +822,8 @@ namespace iFActionScript
                         else if (box == quickToolBox) WingSourceHarmPatcher.Settings.QuickTool = box.select;
                         else if (box == ScienceStudyMinBox) WingSourceHarmPatcher.Settings.ScienceStudyMin = box.select;
                         else if (box == SkillNoCdBox) WingSourceHarmPatcher.Settings.SkillNoCd = box.select;
+                        else if (box == EnemyDrop100Box) WingSourceHarmPatcher.Settings.EnemyDrop100 = box.select;
+                        else if (box == ItemNoSubBox) WingSourceHarmPatcher.Settings.ItemNoSub = box.select;
                         else return false;
                         return true;
                     }

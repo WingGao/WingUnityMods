@@ -39,12 +39,13 @@ namespace WingMod
         public static void UnPack()
         {
             IVal.BasePath = GamePath();
-            var dpackClassName = "ypYelOSLmnAUSe2WuA.nqUuKJcbtj5XBCQC65";
+            //先找到 irwFile.ReadMs(6) == "iFFile" 关键字
+            var dpackClassName = "AB8mB4NDNCouwpdT3F.Qw9VgkSSy0YjdkBSCf";
             var dpackType = AccessTools.TypeByName(dpackClassName);
             var pack = AccessTools.GetDeclaredConstructors(dpackType).First().Invoke(new object[] {"iFCon"});
             // -> foreach (var pf in pack.fileList.list)
-            var files = WingAccessTools.GetFieldValue<object>(pack, "mbNP99AiDA");
-            foreach (var pf in WingAccessTools.GetFieldValue<IDictionary>(files, "t9vPuSRns9").Keys)
+            var files = WingAccessTools.GetFieldValue<object>(pack, "djhlDULoeO"); //第一个内部类属性 internal Qw9VgkSSy0YjdkBSCf.XbKXv54o27k0KMwyu3 djhlDULoeO;
+            foreach (var pf in WingAccessTools.GetFieldValue<IDictionary>(files, "K91lH1PUEM").Keys) //上一个的内部 public Dictionary<string, nqUuKJcbtj5XBCQC65.wRfKbfCsTttEUIhmWD.SI55Yuksdikl90g3kC> t9vPuSRns9;
             {
                 var pfs = pf as string;
                 Debug.WriteLine(pfs);
@@ -56,8 +57,12 @@ namespace WingMod
                 }
 
                 // -> File.WriteAllBytes(fullPath, pack.getFile(pf.Key));
-                File.WriteAllBytes(fullPath, WingAccessTools.InvokeMethod<object>(pack, "VEZPxV3Xs4", new object[] {pfs}) as byte[]);
+                // 找到有ReadByte的方法
+                File.WriteAllBytes(fullPath, WingAccessTools.InvokeMethod<object>(pack, "WNylvR4PFf", new object[] {pfs}) as byte[]); 
             }
+        }
+        
+        public static void LoadMap(){
         }
 
         public static void MakePluginFile()
