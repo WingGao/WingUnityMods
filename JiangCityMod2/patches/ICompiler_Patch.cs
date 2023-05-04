@@ -36,7 +36,7 @@ namespace WingMod
         {
             if (String.IsNullOrEmpty(mainScript))
             {
-                FileLog.Log($"CSharpSyntaxTree_ParseText Stack=> {Environment.StackTrace}");
+                if (MyPlugin.Debug) FileLog.Log($"CSharpSyntaxTree_ParseText Stack=> {Environment.StackTrace}");
                 var stack = new StackTrace().GetFrames().First(x => x.GetMethod().FullDescription().Contains("iFActionGame2"));
                 // foreach (var stackFrame in stack)
                 // {
@@ -44,7 +44,7 @@ namespace WingMod
                 // }
                 foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies()) FileLog.Log($"Assembly=> {assembly.FullName}");
                 mainScript = text.ToString();
-                File.WriteAllText(IVal.BasePath + "src.cs", mainScript);
+                // File.WriteAllText(IVal.BasePath + "src.cs", mainScript);
                 // 注入启动函数
                 var startIdx = mainScript.IndexOf("public static void GameRun()");
                 var nextBlock = mainScript.IndexOf("{", startIdx);
@@ -104,22 +104,6 @@ namespace WingMod
         {
             if (aName != "iFActionGameScript") return;
             LoadScripts(ref text);
-            // var mySource = File.ReadAllLines(IVal.BasePath + "WingModSourcePatcher.cs");
-            // var skipUsing = 0;
-            // for (var i = 0; i < mySource.Length; i++)
-            // {
-            //     if (mySource[i].StartsWith("namespace"))
-            //     {
-            //         skipUsing = i;
-            //         break;
-            //     }
-            // }
-            //
-            // text = $"using HarmonyLib;using OpenTK.Windowing.GraphicsLibraryFramework;using WingUtil.Harmony;using System.Reflection.Emit;" +
-            //        $"\n{text}\n{String.Join("\n", mySource.Skip(skipUsing))}";
-
-            // var patcher = new ScriptSourcePatcher(text);
-            // patcher.Patch();
         }
 
         public static void LoadScripts(ref string text)
@@ -148,8 +132,8 @@ namespace WingMod
 
             var usingTxt = usingMap.Keys.Select(u => "using " + u + ";").Join(null, "");
             var modTxt = scripts.Join(null, "\n");
-            FileLog.Log($"usingTxt => {usingTxt}");
-            FileLog.Log($"modTxt => \n{modTxt}");
+            // FileLog.Log($"usingTxt => {usingTxt}");
+            // FileLog.Log($"modTxt => \n{modTxt}");
             // modTxt = "";
             text = $"{usingTxt}\n{text}\n{modTxt}";
         }

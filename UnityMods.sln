@@ -53,6 +53,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WingUtil.Unity", "WingUtil.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YiShang.bie5", "YiShang.bie5\YiShang.bie5.csproj", "{978856AF-2C9B-4905-ADC1-87BE4C466B47}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VolcanoPrincess.WingMod.umm", "VolcanoPrincess.WingMod.umm\VolcanoPrincess.WingMod.umm.csproj", "{C4B77D47-FAC0-4EB3-8B1D-2787B59370F2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

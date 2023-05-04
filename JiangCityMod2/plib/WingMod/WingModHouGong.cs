@@ -24,13 +24,18 @@ namespace iFActionScript
             public Dictionary<int, MarrySetting> MarryMap = new Dictionary<int, MarrySetting>();
             [JsonIgnore] public List<MarrySetting> MarriedList = new List<MarrySetting>(); // 老婆列表
             [JsonIgnore] public MarrySetting NpcDinghun; //当前订婚的
+            [JsonIgnore] public HashSet<int> MarrySkills = new HashSet<int>(); //拥有的技能
 
             // 筛选老婆顺序
             public void SortMarried()
             {
                 MarriedList = MarryMap.Values.Where(x => x.step > 0).ToList();
                 MarriedList.Sort((a, b) => a.index.CompareTo(b.index));
-                FileLog.Log($"MarriedList= {String.Join(",", MarriedList.Select(x => x.npcId))}");
+                FileLog.Log($@"MarriedList= {String.Join(",", MarriedList.Select(x =>
+                {
+                    MarrySkills.Add(MarryNpcDefines[x.npcId].SkillId);
+                    return x.npcId;
+                }))}");
                 if (MarriedList.Count > 0 && MarriedList.First().step >= STEP_JIEHUN) DaLaoPoId = MarriedList.First().npcId; //大老婆
                 //找到订婚者,当前只能有一个订婚者
                 var d = MarriedList.LastOrDefault();
@@ -277,9 +282,16 @@ namespace iFActionScript
                 var ms = GetMarrySetting(npc.id);
                 if (ms != null && ms.step >= STEP_JIEHUN)
                 {
-                    var idx = _settings.MarriedList.IndexOf(ms);
                     //并排
-                    npc.nowX = RF.findNPC(_settings.DaLaoPoId).nowX + 20 * idx;
+                    var idx = _settings.MarriedList.IndexOf(ms);
+                    if (RV.GameData.selfHomeLevel == 0)
+                    {
+                        npc.nowX = 272 + 20 * idx;
+                    }
+                    else if (RV.GameData.selfHomeLevel == 1)
+                    {
+                        npc.nowX = 352 + 20 * idx;
+                    }
                 }
 
                 MarryNpcBase.BasePostfix();
@@ -412,6 +424,74 @@ namespace iFActionScript
 
                     npcListIdx++;
                 }
+            }
+        }
+
+        /// <summary>
+        /// 结婚技能的影响修改
+        /// </summary>
+        [HarmonyPatch]
+        class MarrySkillPatch
+        {
+            static void Patch(int checkSkillId)
+            {
+                if (_settings.MarrySkills.Contains(checkSkillId)) RV.GameData.value[49] = checkSkillId;
+            }
+
+            [HarmonyPatch(typeof(GDGongFu), nameof(GDGongFu.getMax))]
+            [HarmonyPrefix]
+            static void GDGongFu_getMax()
+            {
+                Patch(30);
+            }
+
+            [HarmonyPatch(typeof(GOre), nameof(GOre.getCL))]
+            [HarmonyPrefix]
+            static void apply_method1()
+            {
+                Patch(50);
+            }
+
+            [HarmonyPatch(typeof(LActorEx), nameof(LActorEx.updateCtrl))]
+            [HarmonyPrefix]
+            static void apply_method3()
+            {
+                Patch(20);
+            }
+
+            [HarmonyPatch(typeof(SInventory), nameof(SInventory.drawAllItems))]
+            [HarmonyPrefix]
+            static void apply_method4()
+            {
+                Patch(10);
+            }
+
+            [HarmonyPatch(typeof(SInventory), nameof(SInventory.update))]
+            [HarmonyPrefix]
+            static void apply_method6()
+            {
+                Patch(10);
+            }
+
+            [HarmonyPatch(typeof(SInventory), "reLoad")]
+            [HarmonyPrefix]
+            static void apply_method5()
+            {
+                Patch(10);
+            }
+
+            [HarmonyPatch(typeof(WBuildMakeTable), "makeItem")]
+            [HarmonyPrefix]
+            static void apply_method7()
+            {
+                Patch(40);
+            }
+
+            [HarmonyPatch(typeof(GActor), nameof(GActor.talent), MethodType.Getter)]
+            [HarmonyPrefix]
+            static void apply_method8()
+            {
+                Patch(60);
             }
         }
     }

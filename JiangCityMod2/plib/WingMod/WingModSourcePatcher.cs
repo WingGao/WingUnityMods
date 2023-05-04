@@ -31,6 +31,8 @@ namespace iFActionScript
         public bool MakeItemOneTime = true; //一次敲击
         public float MakeItemSpeed = 10; //制作速度
         public float MachineSpeed = 0; //机器生成速度
+        public float BeltSpeed = 0; //传送带速度
+        public float JcExpMul = 1; //声望倍率
         public bool TaskNoLimit = true; //任务无上限
         public bool GameTouhuEasy = true; //小游戏投壶最高分
         public bool BuildNoCost = false; //建造不消耗
@@ -66,8 +68,10 @@ namespace iFActionScript
             OnPatch();
         }
 
+
         public static void OnPatch()
         {
+            SourcePatches.BeltSpeedPatch();
         }
 
         private static String SaveFile = "WingMod/WingMod.Settings.json";
@@ -180,6 +184,28 @@ namespace iFActionScript
                 }
             }
 
+
+            //保存原传送带数据
+            private static List<double> beltSpeed;
+
+            /// <summary>
+            /// 修改传送带数据
+            /// </summary>
+            public static void BeltSpeedPatch()
+            {
+                if (beltSpeed == null) beltSpeed = GBuildConveyorBelt.speed.ToList();
+                if (Settings.BeltSpeed > 0)
+                {
+                    GBuildConveyorBelt.speed = beltSpeed.Select(s => s * Settings.BeltSpeed).ToArray();
+                    GBuildHideBelt.speed = beltSpeed.Select(s => s * Settings.BeltSpeed).ToArray();
+                }
+                else
+                {
+                    GBuildConveyorBelt.speed = beltSpeed.ToArray();
+                    GBuildHideBelt.speed = beltSpeed.ToArray();
+                }
+            }
+
             /// <summary>
             /// 快速搜集
             /// </summary>
@@ -258,6 +284,7 @@ namespace iFActionScript
                 return true;
             }
         }
+
 
         [HarmonyPatch(typeof(GMain))]
         public class GMainPatch
@@ -342,6 +369,23 @@ namespace iFActionScript
                 if (id == 980) return false; //天机石不消耗
                 if (Settings.ItemNoSub && RV.GameData.getItemNum(id) > 1) return false; //大于1 不减
                 return true;
+            }
+
+            /// <summary>
+            /// 声望
+            /// </summary>
+            [HarmonyPatch(nameof(GMain.addJCExp))]
+            [HarmonyPrefix]
+            static void addJCExpPatch(ref int exp)
+            {
+                exp = (int) (exp * Settings.JcExpMul);
+            }
+
+            [HarmonyPatch(nameof(GMain.addCJExp))]
+            [HarmonyPrefix]
+            static void addCJExpPatch(ref int exp)
+            {
+                exp = (int) (exp * Settings.JcExpMul);
             }
         }
 
@@ -661,6 +705,8 @@ namespace iFActionScript
         private FloatSlider moveSpeedBar;
         private FloatSlider makeSpeedBar;
         private FloatSlider machineSpeedBar;
+        private FloatSlider beltSpeedBar;
+        private FloatSlider JcExpBar;
         private WingCheckBox giveItemAnyMaxBox;
         private WingCheckBox canPenetrateBox;
         private WingCheckBox makeItemOnceBox;
@@ -710,6 +756,21 @@ namespace iFActionScript
             {
                 if (v.HasValue) WingSourceHarmPatcher.Settings.MachineSpeed = v.Value;
                 return WingSourceHarmPatcher.Settings.MachineSpeed;
+            }, 100);
+            beltSpeedBar = new FloatSlider(view, (v) =>
+            {
+                if (v.HasValue)
+                {
+                    WingSourceHarmPatcher.Settings.BeltSpeed = v.Value;
+                    WingSourceHarmPatcher.SourcePatches.BeltSpeedPatch();
+                }
+
+                return WingSourceHarmPatcher.Settings.BeltSpeed;
+            }, 10);
+            JcExpBar = new FloatSlider(view, (v) =>
+            {
+                if (v.HasValue) WingSourceHarmPatcher.Settings.JcExpMul = v.Value;
+                return WingSourceHarmPatcher.Settings.JcExpMul;
             }, 100);
 
 
@@ -765,7 +826,9 @@ namespace iFActionScript
             drawCheckBox("制作敲击1次：", makeItemOnceBox, line++);
             drawSlider("制作速度：", makeSpeedBar, line++);
             drawSlider("机器生产速度：", machineSpeedBar, line++);
+            drawSlider("传送带速度：", beltSpeedBar, line++);
             drawCheckBox("任务无上限(需重启)：", taskLimitBox, line++);
+            drawSlider("声望倍率：", JcExpBar, line++);
             drawCheckBox("建造不消耗：", buildNoCostBox, line++);
             drawCheckBox("科技不消耗：", ScienceStudyMinBox, line++);
             drawCheckBox("快速搜集：", quickCollectBox, line++);

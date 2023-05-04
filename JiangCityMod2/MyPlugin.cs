@@ -18,11 +18,13 @@ namespace WingMod
         [return: MarshalAs(UnmanagedType.Bool)]
         static extern bool AllocConsole();
 
+        public static bool Debug = true;
+
         public static void Hook()
         {
-            AllocConsole();
+            if (Debug) AllocConsole();
             FileLog.Reset();
-            Harmony.DEBUG = true;
+            // Harmony.DEBUG = true;
             MyHarmony = new Harmony("WingMod");
             MyHarmony.PatchAll();
             FileLogF.Log($"Hook");
@@ -54,26 +56,26 @@ namespace WingMod
             // tVer.SetValue(null, gameVerStr + " wing_patched");
         }
 
-        [HarmonyPatch(typeof(Game))]
-        public class GamePatch
-        {
-            [HarmonyPatch("OnLoad")]
-            [HarmonyPrefix]
-            static void Game_OnLoad_patch()
-            {
-                FileLog.Log($"OnLoad");
-                // var tRV = AccessTools.TypeByName("iFActionScript.RV");
-                // var tVer = AccessTools.Field(tRV, "ver");
-                // tVer.SetValue(null, "wing_patched");
-            }
-
-            // [HarmonyPatch("loadScript")]
-            // [HarmonyPostfix]
-            public static void Game_loadScript_patch()
-            {
-                GetVersion();
-                AccessTools.Method("iFActionScript.WingSourceHarmPatcher:Patch").Invoke(null, null);
-            }
-        }
+        // [HarmonyPatch(typeof(Game))]
+        // public class GamePatch
+        // {
+        //     [HarmonyPatch("OnLoad")]
+        //     [HarmonyPrefix]
+        //     static void Game_OnLoad_patch()
+        //     {
+        //         FileLog.Log($"OnLoad");
+        //         // var tRV = AccessTools.TypeByName("iFActionScript.RV");
+        //         // var tVer = AccessTools.Field(tRV, "ver");
+        //         // tVer.SetValue(null, "wing_patched");
+        //     }
+        //
+        //     // [HarmonyPatch("loadScript")]
+        //     // [HarmonyPostfix]
+        //     public static void Game_loadScript_patch()
+        //     {
+        //         GetVersion();
+        //         AccessTools.Method("iFActionScript.WingSourceHarmPatcher:Patch").Invoke(null, null);
+        //     }
+        // }
     }
 }
