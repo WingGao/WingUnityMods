@@ -1,10 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Reflection.Emit;
 using HarmonyLib;
 using UnityEngine;
 using UnityModManagerNet;
+using WingUtil.Harmony;
 using WingUtil.UnityModManager;
 using Object = UnityEngine.Object;
 
@@ -13,8 +16,9 @@ namespace WingMod
     public class Settings : UnityModManager.ModSettings, IDrawable
     {
         // [Header("修改")] 
-        // [Draw("掉落神兵/圣物/技能最高等级")]
-        // public bool DropWeaponLevel3 = true;
+        [Draw("行动不减")] public bool ActionUnlimited = false;
+
+        [Draw("心情不减")] public bool MoodUnlimited = false;
         //
         // [Draw("见闻掉落无限制")] public bool DropStoryUnlimited = true;
 
@@ -93,15 +97,37 @@ namespace WingMod
         static void OnGUI(UnityModManager.ModEntry modEntry)
         {
             settings.Draw(modEntry);
-            var types = new[] {"力量"};
-            var btnTexts = new[] {"-1", "-5", "-50", "+1", "+5", "+50"};
-            foreach (var ts in types)
+            if (DauSys.Instan == null)
             {
-                WingUnityDraw.DrawButtonGroup(ts, btnTexts, i =>
+                GUILayout.Label("未加载存档");
+                return;
+            }
+
+            var btnTexts = new[] {"-1", "-5", "-50", "+1", "+5", "+50"};
+
+
+            GUILayout.Label("属性");
+            //核心属性
+            foreach (int ts in Enum.GetValues(typeof(InAttri)))
+            {
+                WingUnityDraw.DrawButtonGroup(Constant.inAttriCh[ts], btnTexts, i =>
                 {
                     var t = btnTexts[i];
                     var changeVal = int.Parse(t);
                     LogF($"{ts} {changeVal}");
+                    DauSys.AddInAttri(ts, changeVal, true);
+                });
+            }
+
+            //基础属性
+            foreach (int ts in Enum.GetValues(typeof(Nature)))
+            {
+                WingUnityDraw.DrawButtonGroup(DataSys.Instan.dataCfg.natureCh[ts], btnTexts, i =>
+                {
+                    var t = btnTexts[i];
+                    var changeVal = int.Parse(t);
+                    LogF($"{ts} {changeVal}");
+                    DauSys.AddNature(ts, changeVal, true);
                 });
             }
         }
@@ -188,6 +214,109 @@ namespace WingMod
         #endregion
 
         #region 该游戏的修改
+
+        [HarmonyPatch(typeof(DauSys))]
+        static class DauSysPatch
+        {
+            /// <summary>
+            /// 心情不减
+            /// </summary>
+            /// <param name="num"></param>
+            [HarmonyPatch(nameof(DauSys.AddMood))]
+            [HarmonyPrefix]
+            static void AddMoodPrefix(ref int num)
+            {
+                if (settings.MoodUnlimited && num < 0) num = 0;
+            }
+        }
+
+        [HarmonyPatch(typeof(DataSys))]
+        static class DataSysPatch
+        {
+            /// <summary>
+            /// 行动不减
+            /// </summary>
+            /// <param name="num"></param>
+            [HarmonyPatch(nameof(DataSys.AddEnergy))]
+            [HarmonyPrefix]
+            static void AddEnergyPrefix(ref int num)
+            {
+                if (settings.ActionUnlimited && num < 0) num = 0;
+            }
+        }
+
+        [HarmonyPatch(typeof(ChatSys))]
+        static class ChatSysPatch
+        {
+            [HarmonyPatch(nameof(ChatSys.ChatMenu), new Type[] {typeof(string[]), typeof(string[]), typeof(ChatSys.MenuState), typeof(bool[])})]
+            [HarmonyPrefix]
+            static void ChatMenuPrefix(ref string[] selectName, ChatSys.MenuState state)
+            {
+                switch (state)
+                {
+                    case ChatSys.MenuState.dauWishPer: //父亲以身作则
+                        var tempWishPerChat = WingAccessTools.GetFieldValue<Chat>(TaskSys.Instan, "tempWishPerChat");
+                        for (var i = 0; i < selectName.Length; i++)
+                        {
+                            LogF($"{i} tempWishPerChat.icon={tempWishPerChat.icon}");
+                            var ints = Func.IntLists(tempWishPerChat.icon)[i];
+                            LogF($"ints={String.Join(",", ints)}");
+                            for (var j = 0; j < Constant.dauWishNatureCh.Length; j++)
+                            {
+                                if (ints[j] > 0) selectName[i] += $" {Constant.dauWishNatureCh[j]}+{ints[j]} ";
+                                if (ints[j] < 0) selectName[i] += $" {Constant.dauWishNatureCh[j]}-{ints[j]} ";
+                            }
+                        }
+
+                        break;
+                }
+            }
+        }
+
+
+        [HarmonyPatch(typeof(FeastSys))]
+        static class FestSysPatch
+        {
+            /// <summary>
+            /// 数学题全对
+            /// </summary>
+            [HarmonyPatch("CheckQuesAnswer")]
+            [HarmonyPrefix]
+            static void CheckQuesAnswerPrefix(ref int ___quesIndex, int ___tempQueAns)
+            {
+                ___quesIndex = ___tempQueAns;
+            }
+        }
+
+        /// <summary>
+        /// 节日-转盘
+        /// </summary>
+        [HarmonyPatch]
+        static class FeastSys_BirdFeastEnu
+        {
+            public static MethodBase TargetMethod()
+            {
+                return AccessTools.FirstMethod(
+                    AccessTools.FirstInner(typeof(FeastSys), t => t.Name.StartsWith("<BirdFeastEnu>d"))
+                    , t => t.Name.Contains("MoveNext"));
+            }
+
+            static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+            {
+                ILCursor c = new ILCursor(instructions);
+                // 转盘定格第二个
+                if (c.TryGotoNext(inst => inst.Instruction.MatchStfld("FeastSys::spinGameTime"))
+                    && c.TryGotoNext(inst => inst.Instruction.MatchCallByName("UnityEngine.Random::Range"))
+                   )
+                {
+                    c.Index += 1;
+                    c.Emit(OpCodes.Pop);
+                    c.Emit(OpCodes.Ldc_I4, 250);
+                }
+
+                return c.Context.AsEnumerable();
+            }
+        }
 
         #endregion
     }
