@@ -49,11 +49,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JiangCityMod3", "JiangCityM
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JiangCityMod2", "JiangCityMod2\JiangCityMod2.csproj", "{40333E5C-BB9B-473E-B578-3F8D9BE37D05}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WingUtil.Unity", "WingUtil.Unity\WingUtil.Unity.csproj", "{CD774C44-7057-4D09-877A-8EDFE23E83CC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WingUtil.UnityModManager", "WingUtil.UnityModManager\WingUtil.UnityModManager.csproj", "{CD774C44-7057-4D09-877A-8EDFE23E83CC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YiShang.bie5", "YiShang.bie5\YiShang.bie5.csproj", "{978856AF-2C9B-4905-ADC1-87BE4C466B47}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VolcanoPrincess.WingMod.umm", "VolcanoPrincess.WingMod.umm\VolcanoPrincess.WingMod.umm.csproj", "{C4B77D47-FAC0-4EB3-8B1D-2787B59370F2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnityModManager", "dumm_src\UnityModManager\UnityModManager.csproj", "{A1FCAE3E-523E-4E33-8860-DD39DDDF0F62}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -161,6 +163,10 @@ Global
 		{978856AF-2C9B-4905-ADC1-87BE4C466B47}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{978856AF-2C9B-4905-ADC1-87BE4C466B47}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{978856AF-2C9B-4905-ADC1-87BE4C466B47}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1FCAE3E-523E-4E33-8860-DD39DDDF0F62}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1FCAE3E-523E-4E33-8860-DD39DDDF0F62}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1FCAE3E-523E-4E33-8860-DD39DDDF0F62}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1FCAE3E-523E-4E33-8860-DD39DDDF0F62}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,5 +1,12 @@
 ﻿const ModConfigs = [
     {
+        steamId: 1669980,
+        name: '火山的女儿',
+        gameDir: 'VolcanoPrincess',
+        modProjectName: 'VolcanoPrincess.WingMod.umm',
+        ummTargetDir: "Mods\\WingMod"
+    },
+    {
         steamId: 2281410,
         name: '江城创业记',
         gameDir: 'JiangCity',

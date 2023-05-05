@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using UnityEngine;
 using UnityModManagerNet;
 
@@ -42,30 +44,30 @@ namespace WingUtil
         /// <summary>
         /// 构建UMM的PopupToggleGroup选项
         /// </summary>
-        public static bool DrawPopupToggleGroup(ref System.Object selected, String fieldName, List<ToggleGroupItem> values, bool inline = false)
-        {
-            var changed = false;
-            if (!inline) GUILayout.BeginHorizontal();
-            GUILayout.Label(fieldName, GUILayout.ExpandWidth(false));
-            GUILayout.Space(5);
-            var selectedVal = selected;
-            //TODO 性能优化
-            var valIdx = values.FindIndex(v => v.value.Equals(selectedVal));
-            if (valIdx < 0) valIdx = 0;
-            // UnityModManager.Logger.Log($"valIdx={valIdx}, selectedVal={selectedVal} unique={values.GetHashCode()}");
-            var options = new List<GUILayoutOption>();
-            options.Add(GUILayout.ExpandWidth(false));
-            if (UnityModManager.UI.PopupToggleGroup(ref valIdx, values.Select(v => v.name).ToArray(), fieldName, values.GetHashCode(),
-                    null, options.ToArray()))
-            {
-                selected = values[valIdx].value;
-                changed = true;
-                // UnityModManager.Logger.Log($"PopupToggleGroup change valIdx={valIdx}, selected={selected} ");
-            }
-
-            if (!inline) GUILayout.EndHorizontal();
-            return changed;
-        }
+        // public static bool DrawPopupToggleGroup(ref System.Object selected, String fieldName, List<ToggleGroupItem> values, bool inline = false)
+        // {
+        //     var changed = false;
+        //     if (!inline) GUILayout.BeginHorizontal();
+        //     GUILayout.Label(fieldName, GUILayout.ExpandWidth(false));
+        //     GUILayout.Space(5);
+        //     var selectedVal = selected;
+        //     //TODO 性能优化
+        //     var valIdx = values.FindIndex(v => v.value.Equals(selectedVal));
+        //     if (valIdx < 0) valIdx = 0;
+        //     // UnityModManager.Logger.Log($"valIdx={valIdx}, selectedVal={selectedVal} unique={values.GetHashCode()}");
+        //     var options = new List<GUILayoutOption>();
+        //     options.Add(GUILayout.ExpandWidth(false));
+        //     if (UnityModManager.UI.PopupToggleGroup(ref valIdx, values.Select(v => v.name).ToArray(), fieldName, values.GetHashCode(),
+        //             null, options.ToArray()))
+        //     {
+        //         selected = values[valIdx].value;
+        //         changed = true;
+        //         // UnityModManager.Logger.Log($"PopupToggleGroup change valIdx={valIdx}, selected={selected} ");
+        //     }
+        //
+        //     if (!inline) GUILayout.EndHorizontal();
+        //     return changed;
+        // }
 
         public static void DrawText(String label, System.Object value = null, int? fontSize = null)
         {

@@ -35,30 +35,21 @@
         <Reference Include="0Harmony, Version=2.1.1.0, Culture=neutral, PublicKeyToken=null">
           <HintPath>..\libs\dumm\0Harmony.dll</HintPath>
         </Reference>
-        <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>_game\Assembly-CSharp.dll</HintPath>
+        <Reference Include="Assembly-CSharp">
+          <HintPath>_game\VolcanoPrincess_Data\Managed\Assembly-CSharp.dll</HintPath>
         </Reference>
-        <Reference Include="Assembly-CSharp-firstpass, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>_game\Assembly-CSharp-firstpass.dll</HintPath>
-        </Reference>
-        <Reference Include="DOTween, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>_game\DOTween.dll</HintPath>
+        <Reference Include="Assembly-CSharp-firstpass">
+          <HintPath>_game\VolcanoPrincess_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
         </Reference>
         <Reference Include="System" />
         <Reference Include="System.Core" />
         <Reference Include="System.Data" />
         <Reference Include="System.Xml" />
-        <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>_game\UnityEngine.dll</HintPath>
+        <Reference Include="UnityEngine.CoreModule">
+          <HintPath>_game\VolcanoPrincess_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
         </Reference>
-        <Reference Include="UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>_game\UnityEngine.CoreModule.dll</HintPath>
-        </Reference>
-        <Reference Include="UnityEngine.IMGUIModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>_game\UnityEngine.IMGUIModule.dll</HintPath>
-        </Reference>
-        <Reference Include="UnityEngine.UIModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>_game\UnityEngine.UIModule.dll</HintPath>
+        <Reference Include="UnityEngine.IMGUIModule">
+          <HintPath>_game\VolcanoPrincess_Data\Managed\UnityEngine.IMGUIModule.dll</HintPath>
         </Reference>
         <Reference Include="UnityModManager, Version=0.24.0.50, Culture=neutral, PublicKeyToken=null">
           <HintPath>..\libs\dumm\UnityModManager.dll</HintPath>
@@ -78,13 +69,9 @@
         <Project>{cf9878bc-d9dd-47d2-acfc-a8042fd3b337}</Project>
         <Name>WingUtil.Harmony</Name>
       </ProjectReference>
-      <ProjectReference Include="..\WingUtil.Unity\WingUtil.Unity.csproj">
+      <ProjectReference Include="..\WingUtil.UnityModManager\WingUtil.UnityModManager.csproj">
         <Project>{cd774c44-7057-4d09-877a-8edfe23e83cc}</Project>
-        <Name>WingUtil.Unity</Name>
-      </ProjectReference>
-      <ProjectReference Include="..\WingUtil\WingUtil.csproj">
-        <Project>{97d65711-6616-472d-9ac5-590e288b1d97}</Project>
-        <Name>WingUtil</Name>
+        <Name>WingUtil.UnityModManager</Name>
       </ProjectReference>
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

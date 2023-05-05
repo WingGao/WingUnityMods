@@ -4,7 +4,7 @@ using System.Text;
 using UnityEngine;
 using UnityModManagerNet;
 
-namespace WingUtil.Harmony
+namespace WingUtil.UnityModManager
 {
     public static partial class Extensions
     {

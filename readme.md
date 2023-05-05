@@ -22,7 +22,10 @@
 ### UMM
 * https://wiki.nexusmods.com/index.php/How_to_create_mod_for_unity_game
 * https://wiki.nexusmods.com/index.php/How_to_render_mod_options_(UMM)
-* 
+#### UI相关
+* https://github.com/legendaryhero1981/Dear-Unity-Mod-Manager/blob/master/UnityModManager/UIDraw.cs
+* https://docs.unity3d.com/Manual/gui-Layout.html
+* https://docs.unity3d.com/Manual/GUIScriptingGuide.html
 
 ### BepInEx
 * https://github.com/BepInEx/HarmonyX

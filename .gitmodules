@@ -4,3 +4,6 @@
 [submodule "Harmony"]
 	path = Harmony
 	url = git@github.com:pardeike/Harmony.git
+[submodule "dumm_src"]
+	path = dumm_src
+	url = git@github.com:legendaryhero1981/Dear-Unity-Mod-Manager.git

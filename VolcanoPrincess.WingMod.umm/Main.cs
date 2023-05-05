@@ -1,43 +1,22 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.Reflection;
 using HarmonyLib;
 using UnityEngine;
 using UnityModManagerNet;
+using WingUtil.UnityModManager;
 using Object = UnityEngine.Object;
 
 namespace WingMod
 {
     public class Settings : UnityModManager.ModSettings, IDrawable
     {
-        [Header("修改")] [Draw("掉落神兵/圣物/技能最高等级")]
-        public bool DropWeaponLevel3 = true;
-
-        [Draw("见闻掉落无限制")] public bool DropStoryUnlimited = true;
-        [Draw("必出书怪")] public bool ShuguaiEnable = false;
-        [Draw("必出特殊房间")] public bool RandomRoomDisable = true;
-        [Draw("技能无限随机")] public bool RandomSkillInf = true;
-        [Draw("快速精炼")] public bool PotionRefineQuick = true;
-        [Draw("毒宗碎片增加")] public bool DuPopEnable = true;
-        [Draw("剑返自动触发")] public bool FlySwardAutoBack = true;
-        [Draw("剑返无冷却")] public bool FlySwardBackNoCd = true;
-        [Draw("飞剑按住自动")] public bool FlySwardKeepPress = true;
-
-        // [Draw("飞剑冷却百分比", Max = 100, Min = 0, Precision = 0)]
-        // public float FlySwardBackCoolPer = 50;
-
-        [Draw("减伤百分比", Max = 100, Min = 0, Precision = 0)]
-        public float EnemyDamagePer = 99;
-
-        [Draw("不会死亡")] public bool DeathDisable = true;
-
-
-        [Draw("伤害倍率", Min = 1, Precision = 0)] public float DamageMultiply = 1f;
-
-        [Draw("魂不减")] public bool SoulNotDecrease = true;
-
-        [Draw("角色信息快捷键")] public KeyBinding ShowInfoKeyBinding;
-        [Draw("武器编辑快捷键")] public KeyBinding ShowWeaponKeyBinding;
+        // [Header("修改")] 
+        // [Draw("掉落神兵/圣物/技能最高等级")]
+        // public bool DropWeaponLevel3 = true;
+        //
+        // [Draw("见闻掉落无限制")] public bool DropStoryUnlimited = true;
 
 
         public void OnInit()
@@ -66,6 +45,25 @@ namespace WingMod
 
         public static bool Enable => mod.Enabled;
 
+        /// <summary>
+        /// UMM只能加载WingMod.dll，所以需要手动加载其他dll
+        /// </summary>
+        public static void LoadWingDlls()
+        {
+            AppDomain.CurrentDomain.AssemblyResolve += (sender, args) =>
+            {
+                if (args.Name.StartsWith("WingUtil."))
+                {
+                    var fp = Path.Combine(Directory.GetCurrentDirectory(), "Mods", "WingMod", args.Name.Split(',')[0] + ".dll");
+                    // LogF($"AssemblyResolve {args.Name} {fp}");
+                    return Assembly.LoadFile(fp);
+                }
+                else
+                {
+                    return null;
+                }
+            };
+        }
 
         /// <summary>
         /// 加载
@@ -74,6 +72,7 @@ namespace WingMod
         /// <param name="modEntry"></param>
         static void Load(UnityModManager.ModEntry modEntry)
         {
+            LoadWingDlls();
             settings = UnityModManager.ModSettings.Load<Settings>(modEntry);
             settings.OnInit();
 
@@ -94,6 +93,17 @@ namespace WingMod
         static void OnGUI(UnityModManager.ModEntry modEntry)
         {
             settings.Draw(modEntry);
+            var types = new[] {"力量"};
+            var btnTexts = new[] {"-1", "-5", "-50", "+1", "+5", "+50"};
+            foreach (var ts in types)
+            {
+                WingUnityDraw.DrawButtonGroup(ts, btnTexts, i =>
+                {
+                    var t = btnTexts[i];
+                    var changeVal = int.Parse(t);
+                    LogF($"{ts} {changeVal}");
+                });
+            }
         }
 
         static bool OnToggle(UnityModManager.ModEntry modEntry, bool value /* active or inactive */)
@@ -153,7 +163,7 @@ namespace WingMod
 
             class MyDebugLogHandler : ILogHandler
             {
-                public void LogFormat(LogType logType, Object context, string format, params object[] args)
+                public void LogFormat(UnityEngine.LogType logType, Object context, string format, params object[] args)
                 {
                     // StackTrace st = new StackTrace(3, true);
                     /**

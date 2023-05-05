@@ -1,6 +1,7 @@
 {
   "Id": "WingMod",
   "DisplayName": "WingMod",
-  "Version": "1.0.1",
+  "Author": "51度水",
+  "Version": "1.0.0",
   "EntryMethod": "WingMod.Main.Load"
 }

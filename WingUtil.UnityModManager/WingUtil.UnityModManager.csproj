@@ -7,8 +7,8 @@
         <ProjectGuid>{CD774C44-7057-4D09-877A-8EDFE23E83CC}</ProjectGuid>
         <OutputType>Library</OutputType>
         <AppDesignerFolder>Properties</AppDesignerFolder>
-        <RootNamespace>WingUtil.Unity</RootNamespace>
-        <AssemblyName>WingUtil.Unity</AssemblyName>
+        <RootNamespace>WingUtil.UnityModManager</RootNamespace>
+        <AssemblyName>WingUtil.UnityModManager</AssemblyName>
         <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
         <FileAlignment>512</FileAlignment>
     </PropertyGroup>
@@ -38,9 +38,10 @@
         <Reference Include="System.Xml" />
     </ItemGroup>
     <ItemGroup>
-        <Compile Include="Class1.cs" />
         <Compile Include="Extensions.UMM.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
+        <Compile Include="UMMHelper.cs" />
+        <Compile Include="WingUnityDraw.cs" />
         <Compile Include="UnityHelper.cs" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
