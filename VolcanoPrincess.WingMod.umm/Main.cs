@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -19,6 +20,17 @@ namespace WingMod
         [Draw("行动不减")] public bool ActionUnlimited = false;
 
         [Draw("心情不减")] public bool MoodUnlimited = false;
+
+        [Draw("约会氛围倍数", Precision = 1, Max = 10)]
+        public float NpcMoodMul = 2;
+
+        [Draw("感悟倍数", Precision = 1, Min = 1, Max = 50, Type = DrawType.Slider)]
+        public float DauInspireMul = 10;
+
+        [Draw("声望倍数", Precision = 1, Min = 1, Max = 50, Type = DrawType.Slider)]
+        public float DauFrameMul = 10;
+
+        [Draw("冒险一击必杀")] public bool FightOneHit = true;
         //
         // [Draw("见闻掉落无限制")] public bool DropStoryUnlimited = true;
 
@@ -215,18 +227,67 @@ namespace WingMod
 
         #region 该游戏的修改
 
+        private static string[] FaWishScoreCn = new[] {"爱我", "可爱", "睿智", "勇敢", "可怕", "笨", "逊"};
+
         [HarmonyPatch(typeof(DauSys))]
         static class DauSysPatch
         {
             /// <summary>
             /// 心情不减
             /// </summary>
-            /// <param name="num"></param>
             [HarmonyPatch(nameof(DauSys.AddMood))]
             [HarmonyPrefix]
             static void AddMoodPrefix(ref int num)
             {
                 if (settings.MoodUnlimited && num < 0) num = 0;
+            }
+
+            /// <summary>
+            /// 感悟倍率
+            /// </summary>
+            [HarmonyPatch(nameof(DauSys.AddInspiration))]
+            [HarmonyPrefix]
+            static void AddInspirationPrefix(ref int num)
+            {
+                if (num > 0) num = (int) (num * settings.DauInspireMul);
+            }
+
+            /// <summary>
+            /// 声望倍率
+            /// </summary>
+            [HarmonyPatch(nameof(DauSys.AddFame))]
+            [HarmonyPrefix]
+            static void AddFamePrefix(ref int num)
+            {
+                if (num > 0) num = (int) (num * settings.DauFrameMul);
+            }
+
+            /// <summary>
+            /// 显示女儿的心事
+            /// </summary>
+            [HarmonyPatch(nameof(DauSys.ShowDauWorryChoice))]
+            [HarmonyPrefix]
+            static void ShowDauWorryChoicePrefix(ref string[] choiceCh, Worry ___tempWorry)
+            {
+                for (var i = 0; i < ___tempWorry.choiceAddFaReview.Count; i++)
+                {
+                    for (var j = 0; j < ___tempWorry.choiceAddFaReview[i].Length; j++)
+                    {
+                        var score = ___tempWorry.choiceAddFaReview[i][j];
+                        if (score > 0) choiceCh[i] += $" ({FaWishScoreCn[j]}+{score})";
+                    }
+                }
+            }
+
+            /// <summary>
+            /// 剧院打工-台词随便选
+            /// </summary>
+            [HarmonyPatch(nameof(DauSys.ClickLineChoice))]
+            [HarmonyPrefix]
+            static void ClickLineChoicePrefix(int index, ref List<ValueTuple<int, string>>[] ___linesChoice, int ___lineIndex, int ___lineType)
+            {
+                var lc = ___linesChoice[___lineIndex][index];
+                lc.Item1 = ___lineType;
             }
         }
 
@@ -315,6 +376,88 @@ namespace WingMod
                 }
 
                 return c.Context.AsEnumerable();
+            }
+        }
+
+        [HarmonyPatch(typeof(NpcSys))]
+        static class NpcSysPatch
+        {
+            /// <summary>
+            /// 约会显示选项
+            /// </summary>
+            [HarmonyPatch("RandomDateSelect")]
+            [HarmonyPostfix]
+            static void RandomDateSelectPostfix(NpcSys __instance, List<DateSelect> ___dateSelects)
+            {
+                string[] chName = new string[Constant.dateBtnCount];
+                for (int index = 0; index < chName.Length; ++index)
+                {
+                    var favNum = ___dateSelects[index].addFavor[NpcSys.tempNpc.enName];
+                    chName[index] = $"{___dateSelects[index].chName} ({favNum})";
+                }
+
+                WingAccessTools.InvokeMethod<object>(__instance, "SetDateBtnUi", new[] {chName, null});
+            }
+
+            /// <summary>
+            /// 最大化氛围
+            /// </summary>
+            [HarmonyPatch(nameof(NpcSys.AddMood))]
+            [HarmonyPrefix]
+            static void AddMoodPostfix(ref int num, int ___mood)
+            {
+                if (num > 0)
+                    num = (int) (num * settings.NpcMoodMul)
+                        ;
+            }
+
+            /// <summary>
+            /// 请教+20好感
+            /// </summary>
+            [HarmonyPatch(nameof(NpcSys.EndConsult))]
+            [HarmonyPrefix]
+            static void EndConsultPrefix()
+            {
+                NpcSys.tempNpc.AddFavor(20);
+            }
+        }
+
+        [HarmonyPatch(typeof(MapSys))]
+        static class MapSysPatch
+        {
+            /// <summary>
+            /// 钓鱼满分
+            /// </summary>、
+            [HarmonyPatch("FishingResult")]
+            [HarmonyPrefix]
+            static void FishingResultPrefix(ref int ___hitCount, int ___fishNum, ref int ___fishingScore, int ___rivalFishingScore)
+            {
+                ___hitCount = ___fishNum;
+                ___fishingScore = ___rivalFishingScore;
+            }
+        }
+
+        [HarmonyPatch]
+        static class OtherPatch
+        {
+            /// <summary>
+            /// 骰子游戏必胜
+            /// </summary>
+            [HarmonyPatch(typeof(DiceSys), nameof(DiceSys.StartDiceBtn))]
+            [HarmonyPostfix]
+            static void DiceSys_StartDiceBtn_Postfix(IList ___dicePers)
+            {
+                WingAccessTools.SetFieldValue(___dicePers[1], "hp", 1);
+            }
+
+            /// <summary>
+            /// 冒险一击必杀
+            /// </summary>
+            [HarmonyPatch(typeof(FightSys), "GeneEnemy")]
+            [HarmonyPostfix]
+            static void FightSys_GeneEnemy_Postfix(List<FightEnemy> ___tempEnemies)
+            {
+                if (settings.FightOneHit) ___tempEnemies.ForEach(e => e.hp = 1);
             }
         }
 
