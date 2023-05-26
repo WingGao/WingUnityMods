@@ -32,7 +32,10 @@
 * https://harmony.pardeike.net/articles/patching-injections.html
 * https://docs.bepinex.dev/articles/dev_guide/dev_tools.html
 插件版本
-* https://github.com/ManlyMarco/RuntimeUnityEditor v3.0
+* https://github.com/sinai-dev/BepInExConfigManager
+* https://github.com/sinai-dev/UnityExplorer
+* https://github.com/sinai-dev/UniverseLib UI库
+* https://github.com/ManlyMarco/RuntimeUnityEditor v3.0 不太行
 
 
 ### MonoMod

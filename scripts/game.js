@@ -1,5 +1,12 @@
 ﻿const ModConfigs = [
     {
+        steamId: 1948980,
+        name: '大侠立志传',
+        gameDir: 'WulinSH',
+        modProjectName: 'Wulin.WingMod.bie6c',
+        bie: 5
+    },
+    {
         steamId: 1669980,
         name: '火山的女儿',
         gameDir: 'VolcanoPrincess',

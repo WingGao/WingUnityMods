@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <AssemblyName>Wulin.WingMod.bie6c</AssemblyName>
+    <TargetFramework>net48</TargetFramework>
+    <AssemblyName>WingMod</AssemblyName>
     <Description>My first plugin</Description>
     <Version>1.0.0</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -10,14 +10,23 @@
   </PropertyGroup>
   
   <ItemGroup>
+    <Reference Include="0Harmony">
+      <HintPath>_game\BepInEx\core\0Harmony.dll</HintPath>
+    </Reference>
     <Reference Include="Assembly-CSharp">
       <HintPath>_game\BepInEx\interop\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="BepInEx.Core">
       <HintPath>_game\BepInEx\core\BepInEx.Core.dll</HintPath>
     </Reference>
-    <Reference Include="BepInEx.Unity.IL2CPP">
-      <HintPath>_game\BepInEx\core\BepInEx.Unity.IL2CPP.dll</HintPath>
+    <Reference Include="BepInEx.IL2CPP">
+      <HintPath>_game\BepInEx\core\BepInEx.IL2CPP.dll</HintPath>
+    </Reference>
+    <Reference Include="Il2Cppmscorlib">
+      <HintPath>_game\BepInEx\unhollowed\Il2Cppmscorlib.dll</HintPath>
+    </Reference>
+    <Reference Include="UnhollowerBaseLib">
+      <HintPath>G:\SteamLibrary\steamapps\common\WulinSH\BepInEx\core\UnhollowerBaseLib.dll</HintPath>
     </Reference>
   </ItemGroup>
 </Project>

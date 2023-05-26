@@ -23,6 +23,7 @@ const SteamGameDirs = [
     'e:\\Program Files (x86)\\Steam\\steamapps\\common',
     'd:\\Program Files (x86)\\Steam\\steamapps\\common',
     'F:\\SteamLibrary\\steamapps\\common',
+    'g:\\SteamLibrary\\steamapps\\common',
     'D:\\Projs\\UnityDemo1\\Temp',
 ]
 
